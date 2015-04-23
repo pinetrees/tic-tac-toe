@@ -1,0 +1,16 @@
+<script src="bower_components/angular/angular.js"></script>
+<link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css">
+<link rel="stylesheet" href="css/main.css">
+<html ng-app="TicTacToe">
+    <div ng-controller="MainCtrl" class="board">
+        <div class="row header">Player {{player}}</div>
+        <div ng-repeat="row in board" ng-init="$rowIndex = $index" class="row">
+            <div ng-repeat="cell in row track by $index" ng-init="$colIndex = $index" class="cell href" ng-click="move($rowIndex, $colIndex)">
+                <i ng-if="cell == 1" class="fa fa-circle-o"></i>
+                <i ng-if="cell == 2" class="fa fa-times"></i>
+            </div>
+        </div>
+    </div>
+</html>
+
+<script src="js/app.js"></script>
