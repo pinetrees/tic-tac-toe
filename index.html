@@ -14,8 +14,9 @@
     <div ng-controller="MainCtrl">
       <board>
       <div class="board" style="color: {{player.color}}">
-          <div class="header">{{player.name}}</div>
+        <div class="header">{{player.name}}</div>
         <div class="player"><i class="fa fa-user"></i></div>
+        <div class="header info">{{ message }}</div>
         <div ng-repeat="row in board" ng-init="$rowIndex = $index" class="row">
             <div ng-repeat="cell in row track by $index" ng-init="$colIndex = $index" class="cell" ng-click="move($rowIndex, $colIndex)" ng-class="{href: status, hover: status && hover && (cell == 0)}" ng-mouseenter="hover = true" ng-mouseleave="hover = false">
                 <i ng-if="cell == 1" class="fa fa-circle-o" style="color: {{players[0].color}}"></i>
@@ -29,6 +30,9 @@
             </span>
             <button class="btn" ng-click="reset()">Reset</button>
             <button class="btn" ng-click="simulatePlay()">Randomize play</button>
+            <button class="btn" ng-click="playEverything()" ng-if="!intervals.play_all">Simulate every possible game</button>
+            <button class="btn" ng-click="stopPlayingEverything()" ng-if="intervals.play_all">Stop the simulation</button>
+            <button class="btn" ng-click="clearGameHistory()">Clear the game history</button>
         </div>
       </div>
       </board>

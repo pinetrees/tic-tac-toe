@@ -4,6 +4,17 @@ app = angular.module('TicTacToe', [
             'ngResource',
             'ngRoute',
       ]);
+app.factory('messageService', ['$q', function($q){
+    var factory = {
+        set: function($scope, message) {
+            deferred = $q.defer()
+            $scope.message = message
+            deferred.resolve($scope);
+            return deferred.promise;
+        }
+    }
+    return factory;
+}]);
 app.factory('playerService', ['$http', '$q', function($http, $q){
     var factory = {
         getPlayers: function() {
@@ -49,18 +60,25 @@ app.factory('gameService', ['$http', '$q', function($http, $q){
         save: function(game) {
             return $http.put('http://localhost:3000/games/' + game.id + '.json', game).success(function(data){
             });
+        },
+        deleteAll: function(player) {
+            return $http.get('http://localhost:3000/games/delete_all.json').success(function(data){
+                console.log(data);
+            });
         }
     }
     return factory;
 }]);
-app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '$resource', 'playerService', 'gameService', function ($scope, $timeout, $interval, $routeParams, $resource, playerService, gameService) {
+app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '$resource', 'messageService', 'playerService', 'gameService', function ($scope, $timeout, $interval, $routeParams, $resource, messageService, playerService, gameService) {
 
     $scope.specs = {
         'length' : 3,
         'simulation_speed' : 150,
+        'flash_speed' : 2000,
     }
 
     $scope.game = {}
+    $scope.intervals = {}
 
     $scope.players = [
         {'name': 'Player 1', 'index': 1, 'color': 'red', 'score': 0},
@@ -127,17 +145,6 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
     }
 
     
-    $scope.prepareGame()
-    gameService.getRecent().then(function(games) {
-        if (games.data.length > 0) {
-            $scope.game = games.data[0]
-            $scope.player = _.findWhere($scope.players, {index: $scope.game.current_player});
-            $scope.setBoard()
-        } else {
-            $scope.newGame()
-        }
-    });
-
     $scope.crossSections = function() {
         return [
             [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
@@ -149,7 +156,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
         $scope.cross_sections = $scope.crossSections();
     }
 
-    $scope.move = function(row, col) {
+    $scope.move = function(row, col, persistless) {
         if( !$scope.status ) return false;
 
         if($scope.board[row][col] == 0) {
@@ -159,8 +166,10 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
             $scope.checkMove(row, col);
 
             //Persist this to the server
-            $scope.setGame()
-            gameService.save($scope.game)
+            if( persistless != true  ) {
+                $scope.setGame()
+                gameService.save($scope.game)
+            }
 
             if( $scope.winner ) return true;
             $scope.changePlayer()
@@ -194,7 +203,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
         return true;
     }
 
-    $scope.reset = function() {
+    $scope.reset = function(skip) {
         $scope.tie = true;
         $scope.declareWinner();
         gameService.save($scope.game);
@@ -213,13 +222,16 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
         if( both_players ) $scope.checkTuple(tuple, false, 2);
     }
 
-
-    $scope.checkGame = function() {
-        //We need to make sure the game hasn't ended with a tie
+    $scope.checkTie = function() {
         if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
             $scope.tie = true;
             $scope.declareWinner();
         }
+        return true;
+    }
+    $scope.checkGame = function() {
+        //We need to make sure the game hasn't ended with a tie
+        $scope.checkTie()
 
         //There are three ways to win this game:
         //  1. Have a mark in every cell for a given row
@@ -257,6 +269,8 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
     }
 
     $scope.checkMove = function(row_index, col_index) {
+        $scope.checkTie();
+
         //We only need to check for a single player, and we only need to check for possibilities relative to their last move. Much less work for us.
         row = $scope.board[row_index]
         $scope.checkTuple(row, false, $scope.player.index);
@@ -300,13 +314,12 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
         playerService.save(player);
     }
 
-    var simulation;
     $scope.simulatePlay = function() {
         $scope.prepareGame();
         gameService.create({}).then(function(game) {
             $scope.game = game.data
             $scope.setBoard()
-            simulation = $interval(function() {
+            $scope.$interval = $interval(function() {
                 if( $scope.winner ) {
                     $scope.stopInterval();
                 } else {
@@ -317,8 +330,15 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
     }
 
     $scope.stopInterval = function() {
-        $interval.cancel(simulation);
-        simulation = undefined;
+        $interval.cancel($scope.$interval);
+        $scope.$interval = undefined;
+    }
+
+    $scope.stopPlayingEverything = function() {
+        $scope.stopInterval();
+        delete $scope.intervals.play_all
+        $scope.message = '';
+        $scope.newGame();
     }
 
     $scope.simulateMove = function() {
@@ -334,7 +354,75 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
             }
         }
     }
-    console.log($scope);
+
+    $scope.playScenario = function(board) {
+        $scope.newGame();
+        i = 0;
+        $scope.$interval = $interval(function() {
+            if( $scope.winner || i >= board.length ) {
+                $scope.stopInterval();
+            } else {
+                pair = board[i];
+                $scope.move(pair[0], pair[1]);
+                i++;
+            }
+        }, $scope.specs.simulation_speed);
+    }
+
+    $scope.flashScenario = function(board) {
+        _.each(board, function(pair) {
+            $scope.move(pair[0], pair[1], true);
+        });
+    }
+
+    $scope.getPermutations = function(input) {
+        
+        $scope.permArr = [];
+        $scope.usedChars = [];
+        return $scope.permute(input);
+
+    }
+
+    $scope.permute = function(input) {
+        var i, ch;
+        for (i = 0; i < input.length; i++) {
+          ch = input.splice(i, 1)[0];
+          $scope.usedChars.push(ch);
+          if (input.length == 0) {
+            $scope.permArr.push($scope.usedChars.slice());
+          }
+          $scope.permute(input);
+          input.splice(i, 0, ch);
+          $scope.usedChars.pop();
+        }
+        return $scope.permArr
+    }
+
+    $scope.mapSequence = function(sequence) {
+        board = [];
+        _.each(sequence, function(index) {
+            board.push([Math.floor(index / 3), index % 3])    
+        });
+        return board;
+    }
+
+    //Don't call this. There's a third of a million games.
+    $scope.playEverything = function() {
+        $scope.intervals.play_all = true;
+        games = $scope.getPermutations([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        k = 0;
+        $scope.$interval = $interval(function() {
+            if( k >= games.length ) {
+                $scope.stopInterval();
+            } else {
+                $scope.reset();
+                $scope.message = 'There are ' + (games.length - k).toString() + ' games left!'
+                board = $scope.mapSequence(games[k]);
+                $scope.flashScenario(board);
+                k++;
+            }
+        }, $scope.specs.flash_speed);
+    }
 
     $scope.awesomeness = function(player) {
         total_points = $scope.players[0].score + $scope.players[1].score;
@@ -342,6 +430,24 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
         rough_awesomeness = player.score / total_points * 100;
         return rough_awesomeness;
     }
+
+    $scope.clearGameHistory = function() {
+        gameService.deleteAll();
+        $scope.newGame();
+    }
+
+    //And off to the races...
+    $scope.prepareGame()
+    gameService.getRecent().then(function(games) {
+        if (games.data.length > 0) {
+            $scope.game = games.data[0]
+            $scope.player = _.findWhere($scope.players, {index: $scope.game.current_player});
+            $scope.setBoard()
+        } else {
+            $scope.newGame()
+        }
+    });
+
 }]);
 
 //We need an Angular directive to tap into the global key press events.
