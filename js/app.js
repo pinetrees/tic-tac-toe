@@ -1,4 +1,6 @@
-app = angular.module('TicTacToe', []);
+app = angular.module('TicTacToe', [
+            'angular-underscore'
+        ]);
 app.controller('MainCtrl', function ($scope) {
     $scope.player = 1;
     $scope.board = [
@@ -9,6 +11,7 @@ app.controller('MainCtrl', function ($scope) {
     $scope.move = function(row, col) {
         if($scope.board[row][col] == 0) {
             $scope.board[row][col] = $scope.player;
+            $scope.checkGame()
             $scope.changePlayer()
         }
     }
@@ -19,5 +22,11 @@ app.controller('MainCtrl', function ($scope) {
         } else {
             $scope.player = 1;
         }
+    }
+
+    $scope.checkGame = function() {
+        //_.each( $scope.board, function(row) {
+        //    console.log(row);
+        //} );
     }
 });
