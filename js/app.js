@@ -1,8 +1,46 @@
 app = angular.module('TicTacToe', [
             'angular-underscore',
             'colorpicker.module',
-        ]);
-app.controller('MainCtrl', function ($scope) {
+            'ngResource',
+            'ngRoute',
+      ]);
+app.factory('playerService', ['$http', '$q', function($http, $q){
+    var factory = {
+        players: [],
+        getAll: function() {
+            deferred = $q.defer()
+            return $http.get('http://localhost:3000/players.json').success(function(data){
+                deferred.resolve(data)
+            });
+        },
+        getPlayerOne: function() {
+            deferred = $q.defer()
+            return $http.get('http://localhost:3000/players/1.json').success(function(data){
+                console.log(data)
+                deferred.resolve(data)
+            });
+        },
+        getPlayerTwo: function() {
+            deferred = $q.defer()
+            return $http.get('http://localhost:3000/players/2.json').success(function(data){
+                deferred.resolve(data)
+            });
+        },
+        save: function(player) {
+            return $http.put('http://localhost:3000/players/' + player.id + '.json', player).success(function(data){
+                console.log(data)
+            });
+        }
+    }
+    return factory;
+}]);
+app.controller('MainCtrl', ['$scope', '$routeParams', '$resource', 'playerService', function ($scope, $routeParams, $resource, playerService) {
+    console.log(playerService.getAll());
+    $scope.player = $resource('/players/:index', {
+        format: 'json'
+    });
+    console.log($scope.player);
+
     $scope.specs = {
         'length' : 3
     }
@@ -11,6 +49,14 @@ app.controller('MainCtrl', function ($scope) {
         {'name': 'Player 1', 'index': 1, 'color': 'red'},
         {'name': 'Player 2', 'index': 2, 'color': 'blue'}
     ]
+
+    playerService.getPlayerOne().then(function(player) {
+        _.extend($scope.players[0], player.data)
+    });
+
+    playerService.getPlayerTwo().then(function(player) {
+        _.extend($scope.players[1], player.data)
+    });
 
     $scope.newBoard = function() {
         return [
@@ -46,6 +92,7 @@ app.controller('MainCtrl', function ($scope) {
         if($scope.board[row][col] == 0) {
             $scope.board[row][col] = $scope.player.index;
             $scope.checkGame()
+            if( $scope.winner ) return true;
             $scope.changePlayer()
         }
     }
@@ -88,7 +135,6 @@ app.controller('MainCtrl', function ($scope) {
             //We'll start by taking the first row
             row = $scope.board[i];
 
-            //I'm mixing in underscore, because it's going to stop checking once it fails. I'm going to mimick the same process
             $scope.checkTuple(row, 1);
 
             //If player one doesn't have all the cells in this row, we'll check the same for player 2
@@ -99,6 +145,7 @@ app.controller('MainCtrl', function ($scope) {
 
             $scope.checkTuple(col, 1);
 
+            //Similarly, if player one doesn't have all the cells in this column, we'll check the same for player 2
             $scope.checkTuple(col, 2);
 
         }
@@ -107,11 +154,9 @@ app.controller('MainCtrl', function ($scope) {
         $scope.setCrossSections();
 
         $scope.checkTuple($scope.cross_sections[0], 1);
-
         $scope.checkTuple($scope.cross_sections[0], 2);
 
         $scope.checkTuple($scope.cross_sections[1], 1);
-
         $scope.checkTuple($scope.cross_sections[1], 2);
 
     }
@@ -135,7 +180,11 @@ app.controller('MainCtrl', function ($scope) {
 
         $scope.move(position[0], position[1]);
     }
-});
+
+    $scope.updatePlayer = function(player) {
+        playerService.save(player);
+    }
+}]);
 
 //We need an Angular directive to tap into the global key press events.
 app.directive('board', function() {
