@@ -1349,4 +1349,14 @@ select[multiple].input-lg {
   width: 85%;
   margin: auto auto; }
 
+#performance-bar {
+  width: 300px;
+  height: 10px;
+  margin: auto auto; }
+
+.player-performance-bar {
+  height: 15px;
+  display: inline-block;
+  float: left; }
+
 /*# sourceMappingURL=main.css.map */

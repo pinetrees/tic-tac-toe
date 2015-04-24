@@ -34,20 +34,15 @@ app.factory('playerService', ['$http', '$q', function($http, $q){
     }
     return factory;
 }]);
-app.controller('MainCtrl', ['$scope', '$routeParams', '$resource', 'playerService', function ($scope, $routeParams, $resource, playerService) {
-    console.log(playerService.getAll());
-    $scope.player = $resource('/players/:index', {
-        format: 'json'
-    });
-    console.log($scope.player);
+app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', 'playerService', function ($scope, $timeout, $routeParams, $resource, playerService) {
 
     $scope.specs = {
         'length' : 3
     }
 
     $scope.players = [
-        {'name': 'Player 1', 'index': 1, 'color': 'red'},
-        {'name': 'Player 2', 'index': 2, 'color': 'blue'}
+        {'name': 'Player 1', 'index': 1, 'color': 'red', 'score': 0},
+        {'name': 'Player 2', 'index': 2, 'color': 'blue', 'score': 0}
     ]
 
     playerService.getPlayerOne().then(function(player) {
@@ -68,6 +63,7 @@ app.controller('MainCtrl', ['$scope', '$routeParams', '$resource', 'playerServic
 
     $scope.game = function() {
         delete $scope.winner;
+        delete $scope.tie;
         $scope.player = $scope.players[0];
         $scope.status = 1;
         $scope.board = $scope.newBoard();
@@ -106,7 +102,15 @@ app.controller('MainCtrl', ['$scope', '$routeParams', '$resource', 'playerServic
     }
 
     $scope.declareWinner = function(player_index) {
-        $scope.winner = 'Player ' + player_index
+        if ( !$scope.tie ) {
+            $scope.winner = 'Player ' + player_index
+            $scope._winner = _.findWhere($scope.players, {index: player_index});
+            $scope._winner.score += 1;
+            //Let's persist their score to the server. They deserve it.
+            $scope.updatePlayer($scope._winner);
+        } else {
+            $scope.winner = 'Nobody'
+        }
         $scope.status = 0;
         return true;
     }
@@ -121,6 +125,12 @@ app.controller('MainCtrl', ['$scope', '$routeParams', '$resource', 'playerServic
 
 
     $scope.checkGame = function() {
+        //We need to make sure the game hasn't ended with a tie
+        if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
+            $scope.tie = true;
+            $scope.declareWinner();
+        }
+
         //There are three ways to win this game:
         //  1. Have a mark in every cell for a given row
         //  2. Have a mark in every cell for a given column
@@ -135,17 +145,17 @@ app.controller('MainCtrl', ['$scope', '$routeParams', '$resource', 'playerServic
             //We'll start by taking the first row
             row = $scope.board[i];
 
-            $scope.checkTuple(row, 1);
 
             //If player one doesn't have all the cells in this row, we'll check the same for player 2
+            $scope.checkTuple(row, 1);
             $scope.checkTuple(row, 2);
 
             //No one has won yet. Before we move to the next row, we'll check the associated column
             col = _.map($scope.board, function(row) { return row[i]; });
 
-            $scope.checkTuple(col, 1);
 
             //Similarly, if player one doesn't have all the cells in this column, we'll check the same for player 2
+            $scope.checkTuple(col, 1);
             $scope.checkTuple(col, 2);
 
         }
@@ -183,6 +193,29 @@ app.controller('MainCtrl', ['$scope', '$routeParams', '$resource', 'playerServic
 
     $scope.updatePlayer = function(player) {
         playerService.save(player);
+    }
+
+    $scope.simulatePlay = function() {
+        $scope.game();        
+        while ( !$scope.winner ) {
+            for ( _i = 0; _i < $scope.specs.length; _i++ ) {
+                for ( _j = 0; _j < $scope.specs.length; _j++ ) {
+                    play = Math.random() > 0.5
+                    if( $scope.board[_i][_j] == 0 && play ) {
+                        if ( !$scope.winner ) {
+                            $scope.move(_i, _j);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    $scope.awesomeness = function(player) {
+        total_points = $scope.players[0].score + $scope.players[1].score;
+        if( total_points == 0 ) return 50;
+        rough_awesomeness = player.score / total_points * 100;
+        return rough_awesomeness;
     }
 }]);
 

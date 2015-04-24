@@ -22,12 +22,19 @@
                 <i ng-if="cell == 2" class="fa fa-times" style="color: {{players[1].color}}"></i>
             </div>
         </div>
-        <div ng-if="winner" class="footer">
-            <div>{{ winner }} wins!</div>
-            <button class="btn" ng-click="game()">Play again</button>
+        <div class="footer">
+            <span ng-if="winner">
+                <div>{{ winner }} wins!</div>
+                <button class="btn" ng-click="game()">Play again</button>
+            </span>
+            <button class="btn" ng-click="simulatePlay()">Randomize play</button>
         </div>
       </div>
       </board>
+      <div id="performance-bar">
+          <div id="player-one-performance-bar" class="player-performance-bar" style="background: {{players[0].color}}; width: {{awesomeness(players[0])}}%;"></div>
+          <div id="player-two-performance-bar" class="player-performance-bar" style="background: {{players[1].color}}; width: {{awesomeness(players[1])}}%;"></div>
+      </div>
       <div class="settings row">
           <div class="col-md-6 player-settings">
               <div class="header">
@@ -41,6 +48,10 @@
                 <div class="form-group">
                     <label>Color</label>
                     <input colorpicker ng-model="players[0].color" class="form-control" ng-blur="updatePlayer(players[0])">
+                </div>
+                <div class="form-group">
+                    <label>Score</label>
+                    <input ng-model="players[0].score" class="form-control" disabled>
                 </div>
               </div>
           </div>
@@ -56,6 +67,10 @@
                 <div class="form-group">
                     <label>Color</label>
                     <input colorpicker ng-model="players[1].color" class="form-control" ng-blur="updatePlayer(players[1])">
+                </div>
+                <div class="form-group">
+                    <label>Score</label>
+                    <input ng-model="players[1].score" class="form-control" disabled>
                 </div>
               </div>
           </div>
