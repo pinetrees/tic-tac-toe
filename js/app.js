@@ -61,6 +61,8 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         'length' : 3
     }
 
+    $scope.game = {}
+
     $scope.players = [
         {'name': 'Player 1', 'index': 1, 'color': 'red', 'score': 0},
         {'name': 'Player 2', 'index': 2, 'color': 'blue', 'score': 0}
