@@ -27,6 +27,12 @@ app.controller('MainCtrl', function ($scope) {
         }
     }
 
+    $scope.checkTuple = function(tuple, player_index) {
+        return _.every(tuple, function(cell) {
+            return cell == player_index;
+        }) 
+    }
+
     $scope.checkGame = function() {
         //There are three ways to win this game:
         //  1. Have a mark in every cell for a given row
@@ -35,9 +41,7 @@ app.controller('MainCtrl', function ($scope) {
         //Check the rows first
         _.each( $scope.board, function(row) {
 
-                player_one_wins = _.every(row, function(cell) {
-                    return cell == 1;
-                }) 
+                player_one_wins = $scope.checkTuple(row, 1);
 
                 if ( player_one_wins != true ) {
 
