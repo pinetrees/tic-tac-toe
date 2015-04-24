@@ -4,51 +4,52 @@ app = angular.module('TicTacToe', [
             'ngResource',
             'ngRoute',
       ]);
-app.factory('playerService', ['$http', '$q', function($http, $q){
+app.constant('API_ENDPOINT', 'http://127.0.0.1:3000')
+app.factory('playerService', ['$http', '$q', 'API_ENDPOINT', function($http, $q, API_ENDPOINT){
     var factory = {
         getPlayers: function() {
             deferred = $q.defer()
-            return $http.get('http://localhost:3000/players.json').success(function(data){
+            return $http.get(API_ENDPOINT + '/players.json').success(function(data){
                 deferred.resolve(data)
             });
         },
         //This actually turns out to be pretty dangerous. Naturally.
         getPlayerOne: function() {
             deferred = $q.defer()
-            return $http.get('http://localhost:3000/players/1.json').success(function(data){
+            return $http.get(API_ENDPOINT + '/players/1.json').success(function(data){
                 deferred.resolve(data)
             });
         },
         getPlayerTwo: function() {
             deferred = $q.defer()
-            return $http.get('http://localhost:3000/players/2.json').success(function(data){
+            return $http.get(API_ENDPOINT + '/players/2.json').success(function(data){
                 deferred.resolve(data)
             });
         },
         save: function(player) {
-            return $http.put('http://localhost:3000/players/' + player.id + '.json', player).success(function(data){
+            return $http.put(API_ENDPOINT + '/players/' + player.id + '.json', player).success(function(data){
                 console.log(data)
             });
         }
     }
     return factory;
 }]);
-app.factory('gameService', ['$http', '$q', function($http, $q){
+app.factory('gameService', ['$http', '$q', 'API_ENDPOINT', function($http, $q, API_ENDPOINT){
     var factory = {
         getRecent: function() {
             deferred = $q.defer()
-            return $http.get('http://localhost:3000/games.json').success(function(data){
+            return $http.get(API_ENDPOINT + '/games.json').success(function(data){
                 deferred.resolve(data)
             });
         },
         create: function(game) {
             deferred = $q.defer()
-            return $http.post('http://localhost:3000/games.json', {'game':game}).success(function(data){
+            return $http.post(API_ENDPOINT + '/games.json', {'game':game}).success(function(data){
                 deferred.resolve(data)
             });
         },
         save: function(game) {
-            return $http.put('http://localhost:3000/games/' + game.id + '.json', game).success(function(data){
+            return $http.put(API_ENDPOINT + '/games/' + game.id + '.json', game).success(function(data){
             });
         }
     }
