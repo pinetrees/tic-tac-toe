@@ -1,0 +1,61 @@
+<%= form_for(@game) do |f| %>
+  <% if @game.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@game.errors.count, "error") %> prohibited this game from being saved:</h2>
+
+      <ul>
+      <% @game.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :a %><br>
+    <%= f.number_field :a %>
+  </div>
+  <div class="field">
+    <%= f.label :b %><br>
+    <%= f.number_field :b %>
+  </div>
+  <div class="field">
+    <%= f.label :c %><br>
+    <%= f.number_field :c %>
+  </div>
+  <div class="field">
+    <%= f.label :d %><br>
+    <%= f.number_field :d %>
+  </div>
+  <div class="field">
+    <%= f.label :e %><br>
+    <%= f.number_field :e %>
+  </div>
+  <div class="field">
+    <%= f.label :f %><br>
+    <%= f.number_field :f %>
+  </div>
+  <div class="field">
+    <%= f.label :g %><br>
+    <%= f.number_field :g %>
+  </div>
+  <div class="field">
+    <%= f.label :h %><br>
+    <%= f.number_field :h %>
+  </div>
+  <div class="field">
+    <%= f.label :i %><br>
+    <%= f.number_field :i %>
+  </div>
+  <div class="field">
+    <%= f.label :is_complete %><br>
+    <%= f.check_box :is_complete %>
+  </div>
+  <div class="field">
+    <%= f.label :current_player %><br>
+    <%= f.number_field :current_player %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
