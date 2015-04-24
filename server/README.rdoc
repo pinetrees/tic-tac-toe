@@ -2,9 +2,9 @@
 
 Okay, so...
 
-1. Migrate 
-2. Seed
-3. Serve
+1. Migrate  - bin/rake db:migrate
+2. Seed - bin/rake db:seed
+3. Serve - rails server --binding=wherever.you.want.it.to.be
 
 
 The front end is fixed to 3000, so best serve there! Happy tic-tac-toe-ing.
