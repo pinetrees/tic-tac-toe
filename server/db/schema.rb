@@ -11,14 +11,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150424054955) do
+ActiveRecord::Schema.define(version: 20150424091924) do
 
-  create_table "cells", force: :cascade do |t|
-    t.integer  "row",        limit: 4
-    t.integer  "column",     limit: 4
-    t.integer  "state",      limit: 4
-    t.datetime "created_at",           null: false
-    t.datetime "updated_at",           null: false
+  create_table "games", force: :cascade do |t|
+    t.integer  "a",              limit: 4, default: 0
+    t.integer  "b",              limit: 4, default: 0
+    t.integer  "c",              limit: 4, default: 0
+    t.integer  "d",              limit: 4, default: 0
+    t.integer  "e",              limit: 4, default: 0
+    t.integer  "f",              limit: 4, default: 0
+    t.integer  "g",              limit: 4, default: 0
+    t.integer  "h",              limit: 4, default: 0
+    t.integer  "i",              limit: 4, default: 0
+    t.boolean  "is_complete",    limit: 1, default: false
+    t.integer  "current_player", limit: 4, default: 1
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
   end
 
   create_table "players", force: :cascade do |t|

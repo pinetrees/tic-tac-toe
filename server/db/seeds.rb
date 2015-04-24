@@ -7,4 +7,4 @@
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 Player.delete_all
 Player.create(:name => "Player 1", :score => 0, :color => "red")
-Player.create(:name => "Player 1", :score => 0, :color => "blue")
+Player.create(:name => "Player 2", :score => 0, :color => "blue")

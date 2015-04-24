@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css">
 <link rel="stylesheet" href="bower_components/angular-bootstrap-colorpicker/css/colorpicker.css">
 <link rel="stylesheet" href="css/main.css">
-    <div ng-controller="MainCtrl" ng-keypress="game()">
+    <div ng-controller="MainCtrl">
       <board>
       <div class="board" style="color: {{player.color}}">
           <div class="header">{{player.name}}</div>
@@ -25,7 +25,7 @@
         <div class="footer">
             <span ng-if="winner">
                 <div>{{ winner }} wins!</div>
-                <button class="btn" ng-click="game()">Play again</button>
+                <button class="btn" ng-click="newGame()">Play again</button>
             </span>
             <button class="btn" ng-click="simulatePlay()">Randomize play</button>
         </div>

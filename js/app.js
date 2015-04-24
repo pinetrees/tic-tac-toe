@@ -6,17 +6,16 @@ app = angular.module('TicTacToe', [
       ]);
 app.factory('playerService', ['$http', '$q', function($http, $q){
     var factory = {
-        players: [],
-        getAll: function() {
+        getPlayers: function() {
             deferred = $q.defer()
             return $http.get('http://localhost:3000/players.json').success(function(data){
                 deferred.resolve(data)
             });
         },
+        //This actually turns out to be pretty dangerous. Naturally.
         getPlayerOne: function() {
             deferred = $q.defer()
             return $http.get('http://localhost:3000/players/1.json').success(function(data){
-                console.log(data)
                 deferred.resolve(data)
             });
         },
@@ -34,7 +33,29 @@ app.factory('playerService', ['$http', '$q', function($http, $q){
     }
     return factory;
 }]);
-app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', 'playerService', function ($scope, $timeout, $routeParams, $resource, playerService) {
+app.factory('gameService', ['$http', '$q', function($http, $q){
+    var factory = {
+        getRecent: function() {
+            deferred = $q.defer()
+            return $http.get('http://localhost:3000/games.json').success(function(data){
+                deferred.resolve(data)
+            });
+        },
+        create: function(game) {
+            deferred = $q.defer()
+            return $http.post('http://localhost:3000/games.json', {'game':game}).success(function(data){
+                deferred.resolve(data)
+            });
+        },
+        save: function(game) {
+            return $http.put('http://localhost:3000/games/' + game.id + '.json', game).success(function(data){
+                console.log(data)
+            });
+        }
+    }
+    return factory;
+}]);
+app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', 'playerService', 'gameService', function ($scope, $timeout, $routeParams, $resource, playerService, gameService) {
 
     $scope.specs = {
         'length' : 3
@@ -45,12 +66,9 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         {'name': 'Player 2', 'index': 2, 'color': 'blue', 'score': 0}
     ]
 
-    playerService.getPlayerOne().then(function(player) {
-        _.extend($scope.players[0], player.data)
-    });
-
-    playerService.getPlayerTwo().then(function(player) {
-        _.extend($scope.players[1], player.data)
+    playerService.getPlayers().then(function(players) {
+        _.extend($scope.players[0], players.data[0])
+        _.extend($scope.players[1], players.data[1])
     });
 
     $scope.newBoard = function() {
@@ -61,7 +79,31 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         ]
     }
 
-    $scope.game = function() {
+    $scope.setBoard = function() {
+        $scope.board[0][0] = $scope.game.a
+        $scope.board[0][1] = $scope.game.b
+        $scope.board[0][2] = $scope.game.c
+        $scope.board[1][0] = $scope.game.d
+        $scope.board[1][1] = $scope.game.e
+        $scope.board[1][2] = $scope.game.f
+        $scope.board[2][0] = $scope.game.g
+        $scope.board[2][1] = $scope.game.h
+        $scope.board[2][2] = $scope.game.i
+    }
+
+    $scope.setGame = function() {
+        $scope.game.a = $scope.board[0][0] 
+        $scope.game.b = $scope.board[0][1] 
+        $scope.game.c = $scope.board[0][2] 
+        $scope.game.d = $scope.board[1][0] 
+        $scope.game.e = $scope.board[1][1] 
+        $scope.game.f = $scope.board[1][2] 
+        $scope.game.g = $scope.board[2][0] 
+        $scope.game.h = $scope.board[2][1] 
+        $scope.game.i = $scope.board[2][2] 
+    }
+
+    $scope.newGame = function() {
         delete $scope.winner;
         delete $scope.tie;
         $scope.player = $scope.players[0];
@@ -69,8 +111,21 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         $scope.board = $scope.newBoard();
     }
 
-    $scope.game()
+    $scope.newGame()
     
+    gameService.getRecent().then(function(games) {
+        if (games.data.length > 0) {
+            $scope.game = games.data[0]
+            $scope.player = _.findWhere($scope.players, {index: $scope.game.current_player});
+            $scope.setBoard()
+        } else {
+            gameService.create({}).then(function(game) {
+                $scope.game = game.data
+                $scope.setBoard()
+            });
+        }
+    });
+
     $scope.crossSections = function() {
         return [
             [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
@@ -88,9 +143,15 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         if($scope.board[row][col] == 0) {
             $scope.board[row][col] = $scope.player.index;
             $scope.checkGame()
+
+            //Persist this to the server
+            $scope.setGame()
+            gameService.save($scope.game)
+
             if( $scope.winner ) return true;
             $scope.changePlayer()
         }
+
     }
 
     $scope.changePlayer = function() {
@@ -99,6 +160,9 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         } else {
             $scope.player = $scope.players[0];
         }
+
+        //Persistence.
+        $scope.game.current_player = $scope.player.index
     }
 
     $scope.declareWinner = function(player_index) {
@@ -112,6 +176,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
             $scope.winner = 'Nobody'
         }
         $scope.status = 0;
+        $scope.game.is_complete = true;
         return true;
     }
 
@@ -196,7 +261,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
     }
 
     $scope.simulatePlay = function() {
-        $scope.game();        
+        $scope.newGame();        
         while ( !$scope.winner ) {
             for ( _i = 0; _i < $scope.specs.length; _i++ ) {
                 for ( _j = 0; _j < $scope.specs.length; _j++ ) {
