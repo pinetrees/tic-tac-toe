@@ -48,54 +48,34 @@ app.controller('MainCtrl', function ($scope) {
         //Check the rows first
         _.each( $scope.board, function(row) {
 
-                player_one_wins = $scope.checkTuple(row, 1);
+            player_one_wins = $scope.checkTuple(row, 1);
 
-                if ( player_one_wins ) {
+            if ( player_one_wins ) return $scope.declareWinner(1);  
 
-                    return $scope.declareWinner(1);
+            player_two_wins = $scope.checkTuple(row, 2);
 
-                } 
+            if ( player_two_wins ) return $scope.declareWinner(2);  
 
-                player_two_wins = $scope.checkTuple(row, 2);
-
-                if ( player_two_wins ) {
-
-                    return $scope.declareWinner(2);
-
-                } 
-
-            }
-        );
+        } );
 
         for ( i = 0; i < $scope.specs.length; i++ ) {
+
             row = $scope.board[i];
+
             //I'm mixing in underscore, because it's going to stop checking once it fails. I'm going to mimick the same process
-            player_one_wins = _.every(row, function(cell) {
-                return cell == 1;
-            }) 
+            player_one_wins = $scope.checkTuple(row, 1);
+
+            if ( player_one_wins ) return $scope.declareWinner(1); 
 
             //If player one doesn't have all the cells in this row, we'll check the same for player 2
-            if ( !player_one_wins ) {
+            player_two_wins = $scope.checkTuple(row, 2);
 
-                player_two_wins = _.every(row, function(cell) {
-                    return cell == 2;
-                }) 
+            if ( player_two_wins ) return $scope.declareWinner(2);  
 
-                //No one has won yet. Before we move to the next row, we'll check the associated column
-                if ( !player_two_wins ) {
-                    col = _.map($scope.board, function(row) {
-                        return row[i];
-                    });
-                    console.log(col);
-                }
+            //No one has won yet. Before we move to the next row, we'll check the associated column
+            col = _.map($scope.board, function(row) { return row[i]; });
+            console.log(col);
 
-            } else {
-
-                $scope.winner = 'Player 1'
-                $scope.status = 0
-                break;
-
-            }
         }
     }
 });
