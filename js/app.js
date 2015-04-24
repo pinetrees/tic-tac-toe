@@ -89,30 +89,30 @@ app.controller('MainCtrl', function ($scope) {
             row = $scope.board[i];
 
             //I'm mixing in underscore, because it's going to stop checking once it fails. I'm going to mimick the same process
-            player_one_wins = $scope.checkTuple(row, 1);
+            $scope.checkTuple(row, 1);
 
             //If player one doesn't have all the cells in this row, we'll check the same for player 2
-            player_two_wins = $scope.checkTuple(row, 2);
+            $scope.checkTuple(row, 2);
 
             //No one has won yet. Before we move to the next row, we'll check the associated column
             col = _.map($scope.board, function(row) { return row[i]; });
 
-            player_one_wins = $scope.checkTuple(col, 1);
+            $scope.checkTuple(col, 1);
 
-            player_two_wins = $scope.checkTuple(col, 2);
+            $scope.checkTuple(col, 2);
 
         }
 
         //If we don't have a winner yet, we still need to check the two cross sections
         $scope.setCrossSections();
 
-        player_one_wins = $scope.checkTuple($scope.cross_sections[0], 1);
+        $scope.checkTuple($scope.cross_sections[0], 1);
 
-        player_two_wins = $scope.checkTuple($scope.cross_sections[0], 2);
+        $scope.checkTuple($scope.cross_sections[0], 2);
 
-        player_one_wins = $scope.checkTuple($scope.cross_sections[1], 1);
+        $scope.checkTuple($scope.cross_sections[1], 1);
 
-        player_two_wins = $scope.checkTuple($scope.cross_sections[1], 2);
+        $scope.checkTuple($scope.cross_sections[1], 2);
 
     }
 
@@ -137,6 +137,7 @@ app.controller('MainCtrl', function ($scope) {
     }
 });
 
+//We need an Angular directive to tap into the global key press events.
 app.directive('board', function() {
   return {
     restrict: 'E',
