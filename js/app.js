@@ -49,7 +49,6 @@ app.factory('gameService', ['$http', '$q', function($http, $q){
         },
         save: function(game) {
             return $http.put('http://localhost:3000/games/' + game.id + '.json', game).success(function(data){
-                console.log(data)
             });
         }
     }
@@ -105,7 +104,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         $scope.game.i = $scope.board[2][2] 
     }
 
-    $scope.newGame = function() {
+    $scope.prepareGame = function() {
         delete $scope.winner;
         delete $scope.tie;
         $scope.player = $scope.players[0];
@@ -113,18 +112,29 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         $scope.board = $scope.newBoard();
     }
 
-    $scope.newGame()
+    $scope.newGame = function() {
+        $scope.prepareGame()
+
+        //If our server is running, we want to run our new game through it.
+        $scope.createGame();
+    }
+
+    $scope.createGame = function() {
+        gameService.create({}).then(function(game) {
+            $scope.game = game.data
+            $scope.setBoard()
+        });
+    }
+
     
+    $scope.prepareGame()
     gameService.getRecent().then(function(games) {
         if (games.data.length > 0) {
             $scope.game = games.data[0]
             $scope.player = _.findWhere($scope.players, {index: $scope.game.current_player});
             $scope.setBoard()
         } else {
-            gameService.create({}).then(function(game) {
-                $scope.game = game.data
-                $scope.setBoard()
-            });
+            $scope.newGame()
         }
     });
 
@@ -263,19 +273,23 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
     }
 
     $scope.simulatePlay = function() {
-        $scope.newGame();        
-        while ( !$scope.winner ) {
-            for ( _i = 0; _i < $scope.specs.length; _i++ ) {
-                for ( _j = 0; _j < $scope.specs.length; _j++ ) {
-                    play = Math.random() > 0.5
-                    if( $scope.board[_i][_j] == 0 && play ) {
-                        if ( !$scope.winner ) {
-                            $scope.move(_i, _j);
+        $scope.prepareGame();
+        gameService.create({}).then(function(game) {
+            $scope.game = game.data
+            $scope.setBoard()
+            while ( !$scope.winner ) {
+                for ( _i = 0; _i < $scope.specs.length; _i++ ) {
+                    for ( _j = 0; _j < $scope.specs.length; _j++ ) {
+                        play = Math.random() > 0.5
+                        if( $scope.board[_i][_j] == 0 && play ) {
+                            if ( !$scope.winner ) {
+                                $scope.move(_i, _j);
+                            }
                         }
                     }
                 }
             }
-        }
+        });
     }
 
     $scope.awesomeness = function(player) {
