@@ -33,6 +33,13 @@ app.controller('MainCtrl', function ($scope) {
         }) 
     }
 
+    $scope.declareWinner = function(player_index) {
+        $scope.winner = 'Player ' + player_index
+        $scope.status = 0;
+        return true;
+    }
+
+
     $scope.checkGame = function() {
         //There are three ways to win this game:
         //  1. Have a mark in every cell for a given row
@@ -43,17 +50,19 @@ app.controller('MainCtrl', function ($scope) {
 
                 player_one_wins = $scope.checkTuple(row, 1);
 
-                if ( player_one_wins != true ) {
+                if ( player_one_wins ) {
 
-                    player_two_wins = _.every(row, function(cell) {
-                        return cell == 2;
-                    }) 
+                    return $scope.declareWinner(1);
 
-                } else {
+                } 
 
-                    console.log('player 1 wins!')
+                player_two_wins = $scope.checkTuple(row, 2);
 
-                }
+                if ( player_two_wins ) {
+
+                    return $scope.declareWinner(2);
+
+                } 
 
             }
         );
@@ -77,8 +86,6 @@ app.controller('MainCtrl', function ($scope) {
                     col = _.map($scope.board, function(row) {
                         return row[i];
                     });
-                    console.log(col);
-                    console.log(col);
                     console.log(col);
                 }
 
