@@ -27,7 +27,6 @@ app.factory('playerService', ['$http', '$q', function($http, $q){
         },
         save: function(player) {
             return $http.put('http://localhost:3000/players/' + player.id + '.json', player).success(function(data){
-                console.log(data)
             });
         }
     }
@@ -54,10 +53,11 @@ app.factory('gameService', ['$http', '$q', function($http, $q){
     }
     return factory;
 }]);
-app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', 'playerService', 'gameService', function ($scope, $timeout, $routeParams, $resource, playerService, gameService) {
+app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '$resource', 'playerService', 'gameService', function ($scope, $timeout, $interval, $routeParams, $resource, playerService, gameService) {
 
     $scope.specs = {
-        'length' : 3
+        'length' : 3,
+        'simulation_speed' : 150,
     }
 
     $scope.game = {}
@@ -154,7 +154,9 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
 
         if($scope.board[row][col] == 0) {
             $scope.board[row][col] = $scope.player.index;
-            $scope.checkGame()
+            //I once checked the entire board every time a player moved. I think we can do better.
+            //$scope.checkGame()
+            $scope.checkMove(row, col);
 
             //Persist this to the server
             $scope.setGame()
@@ -192,12 +194,23 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         return true;
     }
 
-    $scope.checkTuple = function(tuple, player_index) {
+    $scope.reset = function() {
+        $scope.tie = true;
+        $scope.declareWinner();
+        gameService.save($scope.game);
+        $scope.newGame();
+    }
+
+    $scope.checkTuple = function(tuple, both_players, player_index) {
+        if( both_players ) player_index = 1
+
         won = _.every(tuple, function(cell) {
             return cell == player_index;
         }) 
 
         if ( won ) $scope.declareWinner(player_index);
+
+        if( both_players ) $scope.checkTuple(tuple, false, 2);
     }
 
 
@@ -224,28 +237,43 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
 
 
             //If player one doesn't have all the cells in this row, we'll check the same for player 2
-            $scope.checkTuple(row, 1);
-            $scope.checkTuple(row, 2);
+            $scope.checkTuple(row, true);
 
             //No one has won yet. Before we move to the next row, we'll check the associated column
             col = _.map($scope.board, function(row) { return row[i]; });
 
 
             //Similarly, if player one doesn't have all the cells in this column, we'll check the same for player 2
-            $scope.checkTuple(col, 1);
-            $scope.checkTuple(col, 2);
+            $scope.checkTuple(col, true);
 
         }
 
         //If we don't have a winner yet, we still need to check the two cross sections
         $scope.setCrossSections();
 
-        $scope.checkTuple($scope.cross_sections[0], 1);
-        $scope.checkTuple($scope.cross_sections[0], 2);
+        $scope.checkTuple($scope.cross_sections[0], true);
+        $scope.checkTuple($scope.cross_sections[1], true);
 
-        $scope.checkTuple($scope.cross_sections[1], 1);
-        $scope.checkTuple($scope.cross_sections[1], 2);
+    }
 
+    $scope.checkMove = function(row_index, col_index) {
+        //We only need to check for a single player, and we only need to check for possibilities relative to their last move. Much less work for us.
+        row = $scope.board[row_index]
+        $scope.checkTuple(row, false, $scope.player.index);
+
+        col = $scope.makeColumn(col_index);
+        $scope.checkTuple(col, false, $scope.player.index);
+
+        //If they're on the diagonal, we need to check the cross section. These happen to occur when the parity of the sum of the indicies is even. And yes, we can do better.
+        if( !$scope.winner && (row_index + col_index) % 2 == 0 ) {
+            $scope.setCrossSections();
+            $scope.checkTuple($scope.cross_sections[0], false, $scope.player.index);
+            $scope.checkTuple($scope.cross_sections[1], false, $scope.player.index);
+        }
+    }
+
+    $scope.makeColumn = function(index) {
+        return _.map($scope.board, function(row) { return row[index]; });
     }
 
     //I've supported speed tic-tac-toe for those with fast fingers. 
@@ -272,25 +300,41 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$routeParams', '$resource', '
         playerService.save(player);
     }
 
+    var simulation;
     $scope.simulatePlay = function() {
         $scope.prepareGame();
         gameService.create({}).then(function(game) {
             $scope.game = game.data
             $scope.setBoard()
-            while ( !$scope.winner ) {
-                for ( _i = 0; _i < $scope.specs.length; _i++ ) {
-                    for ( _j = 0; _j < $scope.specs.length; _j++ ) {
-                        play = Math.random() > 0.5
-                        if( $scope.board[_i][_j] == 0 && play ) {
-                            if ( !$scope.winner ) {
-                                $scope.move(_i, _j);
-                            }
-                        }
+            simulation = $interval(function() {
+                if( $scope.winner ) {
+                    $scope.stopInterval();
+                } else {
+                    $scope.simulateMove();
+                }
+            }, $scope.specs.simulation_speed);
+        });
+    }
+
+    $scope.stopInterval = function() {
+        $interval.cancel(simulation);
+        simulation = undefined;
+    }
+
+    $scope.simulateMove = function() {
+        for ( _i = 0; _i < $scope.specs.length; _i++ ) {
+            for ( _j = 0; _j < $scope.specs.length; _j++ ) {
+                play = Math.random() > 0.5
+                if( $scope.board[_i][_j] == 0 && play ) {
+                    if ( !$scope.winner ) {
+                        $scope.move(_i, _j);
+                        return true;
                     }
                 }
             }
-        });
+        }
     }
+    console.log($scope);
 
     $scope.awesomeness = function(player) {
         total_points = $scope.players[0].score + $scope.players[1].score;
