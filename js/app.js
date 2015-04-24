@@ -2,17 +2,27 @@ app = angular.module('TicTacToe', [
             'angular-underscore'
         ]);
 app.controller('MainCtrl', function ($scope) {
-    $scope.player = 1;
-    $scope.status = 1;
     $scope.specs = {
         'length' : 3
     }
-    $scope.board = [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-    ]
 
+    $scope.newBoard = function() {
+        return [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ]
+    }
+
+    $scope.game = function() {
+        delete $scope.winner;
+        $scope.player = 1;
+        $scope.status = 1;
+        $scope.board = $scope.newBoard();
+    }
+
+    $scope.game()
+    
     $scope.crossSections = function() {
         return [
             [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
