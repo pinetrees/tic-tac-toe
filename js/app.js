@@ -1,10 +1,16 @@
 app = angular.module('TicTacToe', [
-            'angular-underscore'
+            'angular-underscore',
+            'colorpicker.module',
         ]);
 app.controller('MainCtrl', function ($scope) {
     $scope.specs = {
         'length' : 3
     }
+
+    $scope.players = [
+        {'name': 'Player 1', 'index': 1, 'color': 'red'},
+        {'name': 'Player 2', 'index': 2, 'color': 'blue'}
+    ]
 
     $scope.newBoard = function() {
         return [
@@ -16,7 +22,7 @@ app.controller('MainCtrl', function ($scope) {
 
     $scope.game = function() {
         delete $scope.winner;
-        $scope.player = 1;
+        $scope.player = $scope.players[0];
         $scope.status = 1;
         $scope.board = $scope.newBoard();
     }
@@ -35,18 +41,20 @@ app.controller('MainCtrl', function ($scope) {
     }
 
     $scope.move = function(row, col) {
+        if( !$scope.status ) return false;
+
         if($scope.board[row][col] == 0) {
-            $scope.board[row][col] = $scope.player;
+            $scope.board[row][col] = $scope.player.index;
             $scope.checkGame()
             $scope.changePlayer()
         }
     }
 
     $scope.changePlayer = function() {
-        if ($scope.player == 1) {
-            $scope.player = 2;
+        if ($scope.player.index == 1) {
+            $scope.player = $scope.players[1];
         } else {
-            $scope.player = 1;
+            $scope.player = $scope.players[0];
         }
     }
 
@@ -107,4 +115,37 @@ app.controller('MainCtrl', function ($scope) {
         player_two_wins = $scope.checkTuple($scope.cross_sections[1], 2);
 
     }
+
+    //I've supported speed tic-tac-toe for those with fast fingers. 
+    $scope.keyCodes = [49, 50, 51, 52, 53, 54, 55, 56, 57]
+    $scope.keyMappings = {
+        49: [2, 0],
+        50: [2, 1],
+        51: [2, 2],
+        52: [1, 0],
+        53: [1, 1],
+        54: [1, 2],
+        55: [0, 0],
+        56: [0, 1],
+        57: [0, 2],
+    }
+    $scope.moveByKey = function(e) {
+        if( $scope.keyCodes.indexOf(e.keyCode) == -1 ) return;
+        position = $scope.keyMappings[e.keyCode];
+
+        $scope.move(position[0], position[1]);
+    }
+});
+
+app.directive('board', function() {
+  return {
+    restrict: 'E',
+    replace: true,
+    scope: true,
+    link:    function postLink(scope, iElement, iAttrs){
+      jQuery(document).on('keypress', function(e){
+         scope.$apply(scope.moveByKey(e));
+       });
+    }
+  };
 });
