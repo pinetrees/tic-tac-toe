@@ -7,10 +7,22 @@ app.controller('MainCtrl', function ($scope) {
         'length' : 3
     }
     $scope.board = [
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
     ]
+
+    $scope.crossSections = function() {
+        return [
+            [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
+            [$scope.board[0][2], $scope.board[1][1], $scope.board[2][0]]
+        ]
+    }
+
+    $scope.setCrossSections = function() {
+        $scope.cross_sections = $scope.crossSections();
+    }
+
     $scope.move = function(row, col) {
         if($scope.board[row][col] == 0) {
             $scope.board[row][col] = $scope.player;
@@ -49,10 +61,10 @@ app.controller('MainCtrl', function ($scope) {
         //We'll start by looking through the rows
         for ( i = 0; i < $scope.specs.length; i++ ) {
             
-            //We may have a winner. If this is the case, we'll break out.
+            //We may have a winner. If this is the case, we'll break out
             if ( $scope.winner ) break;
 
-            //We'll start by taking the first row.
+            //We'll start by taking the first row
             row = $scope.board[i];
 
             //I'm mixing in underscore, because it's going to stop checking once it fails. I'm going to mimick the same process
@@ -73,5 +85,21 @@ app.controller('MainCtrl', function ($scope) {
             if ( player_two_wins ) return $scope.declareWinner(2); 
 
         }
+
+        //If we don't have a winner yet, we still need to check the two cross sections
+        $scope.setCrossSections();
+
+        player_one_wins = $scope.checkTuple($scope.cross_sections[0], 1);
+        if ( player_one_wins ) return $scope.declareWinner(1); 
+
+        player_two_wins = $scope.checkTuple($scope.cross_sections[0], 2);
+        if ( player_two_wins ) return $scope.declareWinner(2); 
+
+        player_one_wins = $scope.checkTuple($scope.cross_sections[1], 1);
+        if ( player_one_wins ) return $scope.declareWinner(1); 
+
+        player_two_wins = $scope.checkTuple($scope.cross_sections[1], 2);
+        if ( player_two_wins ) return $scope.declareWinner(2); 
+
     }
 });
