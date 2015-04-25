@@ -36,6 +36,16 @@ class Board(models.Model):
                     return player_index
 
 
+    def check_move(self, row_index, col_index):
+        row_win = ( self.cells.filter(cell__row=row_index, cell__player=self.current_player).count() == 3 )
+        col_win = ( self.cells.filter(cell__col=col_index, cell__player=self.current_player).count() == 3 )
+
+        if self.is_cross_section(row_index, col_index):
+            pass
+
+    def is_cross_section(self, row_index, col_index):
+        return ( row_index + col_index ) % 2 == 0
+
 class CellState(models.Model):
     cell = models.ForeignKey(Cell, null=True)
     board = models.ForeignKey(Board, null=True, related_name="cells")
