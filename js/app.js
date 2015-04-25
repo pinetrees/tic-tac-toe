@@ -174,6 +174,9 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
 
             if( $scope.winner ) return true;
             $scope.changePlayer()
+        } else {
+            //This position is already occupied
+            return false
         }
 
     }
@@ -212,6 +215,9 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
     }
 
     $scope.checkTuple = function(tuple, both_players, player_index) {
+        if( $scope.winner ) return true;
+
+        //If we're checking both players, we'll start with the first player.
         if( both_players ) player_index = 1
 
         won = _.every(tuple, function(cell) {
@@ -220,10 +226,11 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
 
         if ( won ) $scope.declareWinner(player_index);
 
-        if( both_players ) $scope.checkTuple(tuple, false, 2);
+        if( !$scope.winner && both_players ) $scope.checkTuple(tuple, false, 2);
     }
 
     $scope.checkTie = function() {
+        //This doesn't work. It won't catch ties when the board is not filled out.
         if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
             $scope.tie = true;
             $scope.declareWinner();
@@ -231,7 +238,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
         return true;
     }
     $scope.checkGame = function() {
-        //We need to make sure the game hasn't ended with a tie
+        //We need to make sure the game hasn't ended with a tie. Currently broken.
         $scope.checkTie()
 
         //There are three ways to win this game:
@@ -270,6 +277,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
     }
 
     $scope.checkMove = function(row_index, col_index) {
+        //Broken.
         $scope.checkTie();
 
         //We only need to check for a single player, and we only need to check for possibilities relative to their last move. Much less work for us.
@@ -280,7 +288,8 @@ app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '
         $scope.checkTuple(col, false, $scope.player.index);
 
         //If they're on the diagonal, we need to check the cross section. These happen to occur when the parity of the sum of the indicies is even. And yes, we can do better.
-        if( !$scope.winner && (row_index + col_index) % 2 == 0 ) {
+        is_cross_section = ( ( row_index + col_index ) % 2 ) == 0
+        if( !$scope.winner && is_cross_section ) {
             $scope.setCrossSections();
             $scope.checkTuple($scope.cross_sections[0], false, $scope.player.index);
             $scope.checkTuple($scope.cross_sections[1], false, $scope.player.index);
