@@ -1,29 +1,26 @@
+<div class="settings row">
+    <div class="col-md-4 player-settings" ng-include="'/views/player.html'" ng-init="player = players[0]" ng-controller="PlayerCtrl">
+    </div>
 <board>
-<div class="board" style="color: {{currentPlayer.color}}">
+<div class="board col-md-4" style="color: {{currentPlayer.color}}">
     <div class="header">{{currentPlayer.name}}</div>
     <div class="player"><i class="fa fa-user"></i></div>
     <div class="header info">{{ message }}</div>
     <div ng-repeat="row in board" ng-init="$rowIndex = $index" class="row">
-        <div ng-repeat="cell in row track by $index" ng-init="$colIndex = $index" class="cell" ng-click="move($rowIndex, $colIndex)" ng-class="{href: status, hover: status && hover && (cell == 0)}" ng-mouseenter="hover = true" ng-mouseleave="hover = false">
+        <div ng-repeat="cell in row track by $index" ng-init="$colIndex = $index" class="cell" ng-click="move($rowIndex, $colIndex)" ng-class="{href: gameActive, hover: gameActive && hover && (cell == 0)}" ng-mouseenter="hover = true" ng-mouseleave="hover = false">
             <i ng-if="cell == 1" class="fa fa-circle-o" style="color: {{players[0].color}}"></i>
             <i ng-if="cell == 2" class="fa fa-times" style="color: {{players[1].color}}"></i>
         </div>
     </div>
     <div class="footer">
         <span ng-if="winner">
-            <div>{{ winner }} wins!</div>
+            <div ng-if="!tie">{{ winner.name }} wins!</div>
+            <div ng-if="tie">It's a tie.</div>
             <button class="btn" ng-click="newGame()">Play again</button>
         </span>
     </div>
 </div>
 </board>
-<div id="performance-bar">
-    <div id="player-one-performance-bar" class="player-performance-bar" style="background: {{players[0].color}}; width: {{awesomeness(players[0])}}%;"></div>
-    <div id="player-two-performance-bar" class="player-performance-bar" style="background: {{players[1].color}}; width: {{awesomeness(players[1])}}%;"></div>
-</div>
-<div class="settings row">
-    <div class="col-md-6 player-settings" ng-include="'/views/player.html'" ng-init="player = players[0]" ng-controller="PlayerCtrl">
-    </div>
-    <div class="col-md-6 player-settings" ng-include="'/views/player.html'" ng-init="player = players[1]" ng-controller="PlayerCtrl">
+    <div class="col-md-4 player-settings" ng-include="'/views/player.html'" ng-init="player = players[1]" ng-controller="PlayerCtrl">
     </div>
 </div>

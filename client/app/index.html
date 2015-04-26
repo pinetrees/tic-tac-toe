@@ -11,9 +11,10 @@
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
-    <link rel="stylesheet" href="styles/main.css">
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" href="bower_components/angular-bootstrap-colorpicker/css/colorpicker.css">
+    <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
   </head>
   <body ng-app="TicTacToe" ng-controller="GameCtrl">
@@ -23,7 +24,7 @@
 
     <div class="header">
       <div class="navbar navbar-default" role="navigation" ng-controller="ActionCtrl">
-        <div class="container">
+        <div class="container no-margin">
           <div class="navbar-header">
 
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#js-navbar-collapse">
@@ -41,9 +42,9 @@
               <li><a class="href" ng-click="reset()">Reset</a></li>
               <li><a class="href" ng-click="simulatePlay()">Randomize play</a></li>
               <li><a class="href" ng-click="clearGameHistory()">Clear the game history</a></li>
-              <span ng-if="simulationIsNotBroken">
-              <li><a class="href" ng-click="simulateEveryGame()" ng-if="!intervals.playAll">Simulate every possible game</a></li>
-              <li><a class="href" ng-click="stopTotalSimulation()" ng-if="intervals.playAll">Stop the simulation</a></li>
+              <span class="hide">
+                  <li><a class="href" ng-click="simulateEveryGame()" ng-if="!intervals.playAll">Simulate every possible game</a></li>
+                  <li><a class="href" ng-click="stopCompleteSimulation()" ng-if="intervals.playAll">Stop the simulation</a></li>
               </span>
             </ul>
           </div>
@@ -51,9 +52,13 @@
       </div>
     </div>
 
-    <div class="container">
-    <div ng-view=""></div>
-    </div>
+    <div class="container-fluid">
+      <div id="performance-bar">
+          <div id="player-one-performance-bar" class="player-performance-bar" style="background: {{players[0].color}}; width: {{awesomeness(players[0])}}%;"></div>
+          <div id="player-two-performance-bar" class="player-performance-bar" style="background: {{players[1].color}}; width: {{awesomeness(players[1])}}%;"></div>
+      </div>
+      <div ng-view=""></div>
+      </div>
 
     <div class="footer">
       <div class="container">

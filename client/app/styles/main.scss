@@ -1,15 +1,13 @@
-@import "variables";
-@import "mixins";
-@import "buttons";
-@import "grid";
-@import "forms";
 
+body {
+    font-family: 'Lato', Arial !important;
+}
 .btn {
     margin: 15px;
 }
 .board {
-    width: 300px;
-    margin: auto auto;
+    margin: 0 auto;
+    float: none;
 }
 .board .header, .board .footer, .settings {
     margin: auto auto;
@@ -23,6 +21,8 @@
 .board .row {
     width: 300px;
     height: 100px;
+    margin: 0 auto;
+    float: none;
 }
 .cell {
     width: 33.3%;
@@ -58,7 +58,7 @@
 }
 
 .settings {
-    margin-top: 100px;
+    margin-top: 20px;
 }
 
 .player-settings {
@@ -70,12 +70,12 @@
 }
 #performance-bar {
     width: 300px;
-    height: 10px;
+    height: 15px;
     margin: auto auto;
 }
 
 .player-performance-bar {
-    height: 15px;
+    height: 100%;
     display: inline-block;
     float: left;
 }
@@ -93,10 +93,10 @@ $icon-font-path: "../bower_components/bootstrap-sass-official/assets/fonts/boots
 
 body {
   padding: 0;
+  background: url('../images/tiny_grid.png');
 }
 
 /* Everything but the jumbotron gets side spacing for mobile first views */
-.header,
 .marketing,
 .footer {
   padding-left: 15px;
@@ -106,7 +106,6 @@ body {
 
 /* Custom page header */
 .header {
-  border-bottom: 1px solid #e5e5e5;
   margin-bottom: 10px;
 
   /* Make the masthead heading the same height as the navigation */
@@ -170,4 +169,15 @@ body {
   .jumbotron {
     border-bottom: 0;
   }
+}
+.navbar-default {
+    background: #313139;
+}
+.navbar-default .navbar-nav > li > a {
+    color: #e2e2e2 !important;
+}
+.navbar-default .navbar-nav > li > a:hover {
+}
+.no-margin {
+    margin: 0 !important;
 }

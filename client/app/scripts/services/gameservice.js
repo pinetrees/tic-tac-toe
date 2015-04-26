@@ -13,9 +13,10 @@ angular.module('TicTacToe')
     var factory = {
         current: function() {
             var deferred = $q.defer();
-            return $http.get(API_ENDPOINT + 'games/current/').success(function(data){
+            $http.get(API_ENDPOINT + 'games/current/').success(function(data){
                 deferred.resolve(data);
             });
+            return deferred.promise;
         },
         create: function() {
             var deferred = $q.defer();
@@ -38,9 +39,10 @@ angular.module('TicTacToe')
         },
         move: function(game, move) {
             var deferred = $q.defer();
-            return $http.post(API_ENDPOINT + 'games/' + game.id + '/move/', move).success(function(data){
+            $http.post(API_ENDPOINT + 'games/' + game.id + '/move/', move).success(function(data){
                 deferred.resolve(data);
             });
+            return deferred.promise;
         },
         reset: function(game) {
             var deferred = $q.defer();
