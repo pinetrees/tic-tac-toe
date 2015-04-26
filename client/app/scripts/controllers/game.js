@@ -15,8 +15,8 @@ angular.module('TicTacToe')
     $scope.specs = {
         'length' : 3,
         'simulationSpeed' : 100,
-        'flashSimulationSpeed' : 15,
-        'flashSpeed' : 500,
+        'flashSimulationSpeed' : 100,
+        'flashSpeed' : 3000,
         'liveReloadSpeed': 800,
     };
 
@@ -31,12 +31,13 @@ angular.module('TicTacToe')
     ];
 
     $scope.setPlayers = function() {
-        playerService.getPlayers().then(function(players) {
+        playerService.query().then(function(players) {
             _.extend($scope.players[0], players.data[0]);
             _.extend($scope.players[1], players.data[1]);
         });
     };
 
+    //There is absolutely something going on here that needs attention.
     $scope.setPlayers();
 
     $scope.newBoard = function() {
@@ -58,7 +59,7 @@ angular.module('TicTacToe')
         $scope.lastMove = {
             row: row,
             col: col,
-            state: $scope.player.index,
+            state: $scope.currentPlayer.index,
         };
         if ($scope.moveInProgress) {
             $scope.message = 'There is a move in progress. Your move has been queued.';
@@ -86,7 +87,7 @@ angular.module('TicTacToe')
     $scope.prepareGame = function() {
         delete $scope.winner;
         delete $scope.tie;
-        $scope.player = $scope.players[0];
+        $scope.currentPlayer = $scope.players[0];
         $scope.status = 1;
         $scope.board = $scope.newBoard();
     };
@@ -99,7 +100,7 @@ angular.module('TicTacToe')
     };
 
     $scope.createGame = function() {
-        gameService.create({}).then(function(game) {
+        gameService.create().then(function(game) {
             $scope.game = game.data;
             $scope.setBoard();
         });
@@ -120,7 +121,7 @@ angular.module('TicTacToe')
         }
 
         if($scope.board[row][col] === 0) {
-            $scope.board[row][col] = $scope.player.index;
+            $scope.board[row][col] = $scope.currentPlayer.index;
             //I once checked the entire board every time a player moved. I think we can do better.
             //$scope.checkGame()
             $scope.checkMove(row, col);
@@ -142,14 +143,14 @@ angular.module('TicTacToe')
     };
 
     $scope.changePlayer = function() {
-        if ($scope.player.index === 1) {
-            $scope.player = $scope.players[1];
+        if ($scope.currentPlayer.index === 1) {
+            $scope.currentPlayer = $scope.players[1];
         } else {
-            $scope.player = $scope.players[0];
+            $scope.currentPlayer = $scope.players[0];
         }
 
         //Persistence.
-        $scope.game.currentPlayer = $scope.player.index;
+        $scope.game.currentPlayer = $scope.currentPlayer.index;
     };
 
     $scope.declareWinner = function(playerIndex) {
@@ -157,8 +158,6 @@ angular.module('TicTacToe')
             $scope.winner = 'Player ' + playerIndex;
             $scope._winner = _.findWhere($scope.players, {index: playerIndex});
             $scope._winner.score += 1;
-            //Let's persist their score to the server. They deserve it.
-            $scope.updatePlayer($scope._winner);
         } else {
             $scope.winner = 'Nobody';
         }
@@ -172,7 +171,7 @@ angular.module('TicTacToe')
         $scope.status = 1;
         gameService.reset($scope.game).then(function(game) {
             $scope.game = game.data;
-            $scope.player = _.findWhere($scope.players, {index: $scope.game.state});
+            $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
             $scope.setBoard();
         });
     };
@@ -264,17 +263,17 @@ angular.module('TicTacToe')
 
         //We only need to check for a single player, and we only need to check for possibilities relative to their last move. Much less work for us.
         var row = $scope.board[rowIndex];
-        $scope.checkTuple(row, false, $scope.player.index);
+        $scope.checkTuple(row, false, $scope.currentPlayer.index);
 
         var col = $scope.makeColumn(colIndex);
-        $scope.checkTuple(col, false, $scope.player.index);
+        $scope.checkTuple(col, false, $scope.currentPlayer.index);
 
         //If they're on the diagonal, we need to check the cross section. These happen to occur when the parity of the sum of the indicies is even. And yes, we can do better.
         var isCrossSection = ( ( rowIndex + colIndex ) % 2 ) === 0;
         if( !$scope.winner && isCrossSection ) {
             $scope.setCrossSections();
-            $scope.checkTuple($scope.crossSections[0], false, $scope.player.index);
-            $scope.checkTuple($scope.crossSections[1], false, $scope.player.index);
+            $scope.checkTuple($scope.crossSections[0], false, $scope.currentPlayer.index);
+            $scope.checkTuple($scope.crossSections[1], false, $scope.currentPlayer.index);
         }
 
         //We'll run a simple check for a tie game.
@@ -305,10 +304,6 @@ angular.module('TicTacToe')
         var position = $scope.keyMappings[e.keyCode];
 
         $scope.move(position[0], position[1]);
-    };
-
-    $scope.updatePlayer = function(player) {
-        playerService.save(player);
     };
 
     $scope.stopInterval = function() {
@@ -343,44 +338,42 @@ angular.module('TicTacToe')
         return roughAwesomeness;
     };
 
-    //This is not doing anything.
-    $scope.$watch('game', function() {
-        $rootScope.game = $scope.game;
-    });
-
     
+    $scope.setLiveReload = function() {
+        $scope.$liveReloadInterval = $interval(function() {
+            if( $scope.winner ) {
+                //We'll let the team look at this as long as they want to.
+                return true;
+            }
+            gameService.current().then(function(game) {
+                if (game.data) {
+                    //If the game hasn't changed, we'll leave things alone.
+                    if (game.data.game_index === $scope.game.game_index) { 
+                        return true;
+                    } else {
+                        $scope.game = game.data;
+                        $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
+                        $scope.setBoard();
+                    }
+                } else {
+                    //We'll do nothing and let the game continue in peace.
+                }
+            });
+        }, $scope.specs.liveReloadSpeed);
+    }
+
+
     //And off to the races...
     $scope.prepareGame();
-    gameService.getCurrent().then(function(game) {
+    gameService.current().then(function(game) {
         if (game.data) {
             $scope.game = game.data;
-            $scope.player = _.findWhere($scope.players, {index: $scope.game.state});
+            $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
             $scope.setBoard();
         } else {
             $scope.newGame();
         }
 
     });
-
-    $scope.$liveReloadInterval = $interval(function() {
-        gameService.getCurrent().then(function(game) {
-            console.log('live reload');
-            if (game.data) {
-                //If the game hasn't changed, we'll leave things alone.
-                console.log($scope.game.game_index)
-                console.log(game.data.game_index)
-                if (game.data.game_index == $scope.game.game_index) { 
-                    return true;
-                } else {
-                    $scope.game = game.data;
-                    $scope.player = _.findWhere($scope.players, {index: $scope.game.state});
-                    $scope.setBoard();
-                }
-            } else {
-                //We'll do nothing and let the game continue in peace.
-            }
-        });
-    }, $scope.specs.liveReloadSpeed);
-
 
   });

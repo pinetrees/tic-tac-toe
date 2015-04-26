@@ -10,22 +10,15 @@
 angular.module('TicTacToe')
   .factory('playerService', ['$http', '$q', 'API_ENDPOINT', function($http, $q, API_ENDPOINT){
       var factory = {
-          getPlayers: function() {
+          query: function() {
               var deferred = $q.defer();
               return $http.get(API_ENDPOINT + 'players/').success(function(data){
                   deferred.resolve(data);
               });
           },
-          //This actually turns out to be pretty dangerous. Naturally.
-          getPlayerOne: function() {
+          get: function(player) {
               var deferred = $q.defer();
-              return $http.get(API_ENDPOINT + 'players/1/').success(function(data){
-                  deferred.resolve(data);
-              });
-          },
-          getPlayerTwo: function() {
-              var deferred = $q.defer();
-              return $http.get(API_ENDPOINT + 'players/2/').success(function(data){
+              return $http.get(API_ENDPOINT + 'players/' + player + '/').success(function(data){
                   deferred.resolve(data);
               });
           },

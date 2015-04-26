@@ -11,15 +11,15 @@ angular.module('TicTacToe')
   .factory('gameService', ['$http', '$q', 'API_ENDPOINT', function($http, $q, API_ENDPOINT){
     // AngularJS will instantiate a singleton by calling "new" on this function
     var factory = {
-        getCurrent: function() {
+        current: function() {
             var deferred = $q.defer();
-            return $http.get(API_ENDPOINT + 'games/current').success(function(data){
+            return $http.get(API_ENDPOINT + 'games/current/').success(function(data){
                 deferred.resolve(data);
             });
         },
-        create: function(game) {
+        create: function() {
             var deferred = $q.defer();
-            return $http.post(API_ENDPOINT + 'games/', {'game':game}).success(function(data){
+            return $http.get(API_ENDPOINT + 'games/new/').success(function(data){
                 deferred.resolve(data);
             });
         },
@@ -43,7 +43,7 @@ angular.module('TicTacToe')
         },
         reset: function(game) {
             var deferred = $q.defer();
-            return $http.post(API_ENDPOINT + 'games/' + game.id + '/reset/').success(function(data){
+            return $http.get(API_ENDPOINT + 'games/' + game.id + '/reset/').success(function(data){
                 deferred.resolve(data);
             });
         }

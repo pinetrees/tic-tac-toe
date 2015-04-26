@@ -79,6 +79,7 @@ angular.module('TicTacToe')
 
     };
 
+    //This feature is currently bugged, but worth checking out.
     $scope.flashScenario = function(board) {
         $scope.$childInterval = $interval(function() {
             var pair = board.shift();
@@ -98,7 +99,6 @@ angular.module('TicTacToe')
         return board;
     };
 
-    //Don't call this. There's a third of a million games.
     $scope.simulateEveryGame = function() {
         $scope.intervals.playAll = true;
         var games = $scope.getPermutations([0, 1, 2, 3, 4, 5, 6, 7, 8]);
@@ -106,6 +106,7 @@ angular.module('TicTacToe')
         $rootScope.$interval = $interval(function() {
             if( k >= games.length ) {
                 $scope.$parent.stopInterval();
+                $scope.intervals.playAll = false;
                 $rootScope.message = '';
             } else if ( typeof($scope.childInterval) !== 'undefined' ) {
                 //Do nothing

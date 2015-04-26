@@ -20,16 +20,20 @@ describe('Controller: GameCtrl', function () {
     }
   }));
 
-  it('should just be 3', function () {
+  it('should have a board with dimension three', function () {
     expect(scope.specs.length).toBe(3);
   });
 
-  it('should not be queued', function () {
+  it('should not have a queue', function () {
     expect(scope.moveInProgress).toBe(false);
   });
 
   it('should produce a fresh board for testing', function () {
     expect(scope.boardIsClean()).toBe(true);
+  });
+
+  it('should have players', function () {
+    scope.setPlayers();
   });
 
   it('should change the current player', function () {
