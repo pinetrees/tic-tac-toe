@@ -2,13 +2,15 @@
 
 /**
  * @ngdoc function
- * @name TicTacToe.controller:GamectrlCtrl
+ * @name TicTacToe.controller:GameCtrl
  * @description
- * # GamectrlCtrl
+ * # GameCtrl
  * Controller of the TicTacToe
  */
 angular.module('TicTacToe')
-  .controller('GameCtrl', function ($scope, $timeout, $interval, $routeParams, $resource, playerService, gameService, _) {
+  .controller('GameCtrl', function ($scope, $rootScope, $timeout, $interval, $routeParams, $resource, playerService, gameService) {
+
+    var _ = window._;
 
     $scope.specs = {
         'length' : 3,
@@ -102,15 +104,12 @@ angular.module('TicTacToe')
     };
 
     
-    $scope.crossSections = function() {
-        return [
+    $scope.setCrossSections = function() {
+        $scope.crossSections = [
             [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
             [$scope.board[0][2], $scope.board[1][1], $scope.board[2][0]]
         ];
-    };
-
-    $scope.setCrossSections = function() {
-        $scope.crossSections = $scope.crossSections();
+        return true;
     };
 
     $scope.move = function(row, col, persistless) {
@@ -308,23 +307,8 @@ angular.module('TicTacToe')
         playerService.save(player);
     };
 
-    $scope.simulatePlay = function() {
-        $scope.prepareGame();
-        gameService.create({}).then(function(game) {
-            $scope.game = game.data;
-            $scope.setBoard();
-            $scope.$interval = $interval(function() {
-                if( $scope.winner ) {
-                    $scope.stopInterval();
-                } else {
-                    $scope.simulateMove();
-                }
-            }, $scope.specs.simulationSpeed);
-        });
-    };
-
     $scope.stopInterval = function() {
-        $interval.cancel($scope.$interval);
+        $interval.cancel($rootScope.$interval);
         $scope.$interval = undefined;
     };
 
@@ -333,20 +317,6 @@ angular.module('TicTacToe')
         delete $scope.intervals.playAll;
         $scope.message = '';
         $scope.newGame();
-    };
-
-    $scope.simulateMove = function() {
-        for ( var _i = 0; _i < $scope.specs.length; _i++ ) {
-            for ( var _j = 0; _j < $scope.specs.length; _j++ ) {
-                var play = Math.random() > 0.5;
-                if( $scope.board[_i][_j] === 0 && play ) {
-                    if ( !$scope.winner ) {
-                        $scope.move(_i, _j);
-                        return true;
-                    }
-                }
-            }
-        }
     };
 
     $scope.playScenario = function(board) {
@@ -427,12 +397,10 @@ angular.module('TicTacToe')
         return roughAwesomeness;
     };
 
-    $scope.clearGameHistory = function() {
-        gameService.deleteAll().then(function() {
-            $scope.setPlayers();
-            $scope.newGame();
-        });
-    };
+    //This is not doing anything.
+    $scope.$watch('game', function() {
+        $rootScope.game = $scope.game
+    });
 
     //And off to the races...
     $scope.prepareGame();
@@ -447,5 +415,5 @@ angular.module('TicTacToe')
 
     });
 
-  });
 
+  });
