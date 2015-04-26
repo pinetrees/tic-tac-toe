@@ -23,10 +23,10 @@ describe('Service: gameService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'games/current/').respond(game);
 
     gameService.current().then(function(result) {
-        data = result.data
+        data = result;
     });
 
-    httpBackend.flush()
+    httpBackend.flush();
     expect(data).toEqual(game);
   });
 
@@ -36,10 +36,10 @@ describe('Service: gameService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'games/new/').respond(game);
 
     gameService.create().then(function(result) {
-        data = result
+        data = result;
     });
 
-    httpBackend.flush()
+    httpBackend.flush();
     expect(data).toEqual(game);
   });
 
@@ -49,10 +49,10 @@ describe('Service: gameService', function () {
     httpBackend.expectPUT(_API_ENDPOINT_ + 'games/' + game.id + '/').respond(game);
 
     gameService.save(game).then(function(result) {
-        data = result.data
+        data = result.data;
     });
 
-    httpBackend.flush()
+    httpBackend.flush();
     expect(data).toEqual(game);
   });
 
@@ -60,10 +60,10 @@ describe('Service: gameService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'games/delete_all/').respond({});
 
     gameService.deleteAll().then(function(result) {
-        data = result.data
+        data = result.data;
     });
 
-    httpBackend.flush()
+    httpBackend.flush();
     expect(data).toEqual({});
   });
 
@@ -75,10 +75,10 @@ describe('Service: gameService', function () {
     httpBackend.expectPOST(_API_ENDPOINT_ + 'games/' + game.id + '/move/').respond(updated_game);
 
     gameService.move(game, move).then(function(result) {
-        data = result.data
+        data = result;
     });
 
-    httpBackend.flush()
+    httpBackend.flush();
     expect(data).toEqual(updated_game);
   });
 
@@ -89,10 +89,10 @@ describe('Service: gameService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'games/' + game.id + '/reset/').respond(default_game);
 
     gameService.reset(game).then(function(result) {
-        data = result.data
+        data = result.data;
     });
 
-    httpBackend.flush()
+    httpBackend.flush();
     expect(data).toEqual(default_game);
   });
 

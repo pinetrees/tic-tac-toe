@@ -32,6 +32,7 @@ angular.module('TicTacToe')
 
     $scope.game = {};
     $scope.intervals = {};
+    $scope.lastMove = {};
     $scope.queue = [];
     $scope.moveInProgress = false;
 
@@ -83,7 +84,7 @@ angular.module('TicTacToe')
         } else {
             $scope.winner = {};
         }
-        $scope.gameActive = true;
+        $scope.gameActive = false;
         $scope.game.is_complete = true;
         return true;
     };
@@ -92,9 +93,10 @@ angular.module('TicTacToe')
     // BOARD/GAME METHODS
     // 1. newBoard
     // 2. setBoard
-    // 3. perpareGame
+    // 3. prepareGame
     // 4. createGame
     // 5. newGame
+    // 6. fetchGame
 
     // This method simply returns a fresh board.
     $scope.newBoard = function() {
@@ -138,6 +140,18 @@ angular.module('TicTacToe')
         $scope.createGame();
     };
 
+    //Attempt to get the most recent game off of the server. If no incomplete game exists, start a new one.
+    $scope.fetchGame = function() {
+        gameService.current().then(function(game) {
+            if (game) {
+                $scope.game = game;
+                $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
+                $scope.setBoard();
+            } else {
+                $scope.newGame();
+            }
+        });
+    }
 
     // MOVE METHODS
     // 1. persistMove
@@ -146,7 +160,7 @@ angular.module('TicTacToe')
     // This method handles persisting game moves to the server. It is defined separately from makeMove so that it can be called recursively, if we have a queue
     $scope.persistMove = function(move) {
         gameService.move($scope.game, move).then(function(game) {
-            $scope.game = game.data;
+            $scope.game = game;
             if($scope.queue.length > 0) {
                 move = $scope.queue.pop();
                 $scope.persistMove(move);
@@ -196,6 +210,8 @@ angular.module('TicTacToe')
             }
 
             $scope.changePlayer();
+
+            return true;
         } else {
             //This position is already occupied
             return false;
@@ -214,12 +230,12 @@ angular.module('TicTacToe')
     $scope.checkTie = function() {
         if( $scope.winner ) {
             return false;
-        }
-        if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
+        } else if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
             $scope.tie = true;
             return $scope.declareWinner();
+        } else {
+            return false;
         }
-        return false;
     };
 
     // This is our atomic, client-side state verification. There are precisely eight possible board tuples which can win the game. This method checks to see if every value of a given tuple has a given player's index. If this is the case, the player has won. If we are checking the entire game, it is sensible to check both players on each tuple, since we have already done the work to structure the tuple. In this case, we pass true for bothPlayers, and the method will execute up to one time for each player.
@@ -318,6 +334,12 @@ angular.module('TicTacToe')
         $scope.checkTuple($scope.crossSections[1], true);
 
         $scope.checkTie();
+        
+        if ( $scope.winner ) {
+            return true;
+        } else {
+            return false;
+        }
     };
 
 
@@ -348,13 +370,14 @@ angular.module('TicTacToe')
     // Allows our players to use the number keys to move. 
     $scope.moveByKey = function(e) {
         if( $scope.keyCodes.indexOf(e.keyCode) === -1 ) {
-            return;
+            return false;
         }
         var position = $scope.keyMappings[e.keyCode];
 
-        $scope.move(position[0], position[1]);
+        return $scope.move(position[0], position[1]);
     };
 
+    // Cancels an interval representing a repeating process: simulation, live reload, etc.
     $scope.stopInterval = function(interval) {
         $interval.cancel(interval);
     };
@@ -374,6 +397,7 @@ angular.module('TicTacToe')
         }, $scope.specs.simulationSpeed);
     };
 
+    // Handles computation for the awesomeness bar, which pins the two player's scores against each other.
     $scope.awesomeness = function(player) {
         var totalPoints = $scope.players[0].score + $scope.players[1].score;
         if( totalPoints === 0 ) {
@@ -384,19 +408,24 @@ angular.module('TicTacToe')
     };
 
     
+    // Starts continuous, real-time game updating, allowing players to play from remote locations, and so forth.
     $scope.setLiveReload = function() {
+        if ( $scope.$liveReloadInterval ) {
+            return false;
+        }
         $scope.$liveReloadInterval = $interval(function() {
             if( $scope.winner ) {
                 //We'll let the team look at this as long as they want to.
                 return true;
             }
+            //With a little bit of work, this can be refactored into fetchGame
             gameService.current().then(function(game) {
-                if (game.data) {
+                if (game) {
                     //If the game hasn't changed, we'll leave things alone.
-                    if (game.data.game_index === $scope.game.game_index) { 
+                    if (game.game_index === $scope.game.game_index) { 
                         return true;
                     } else {
-                        $scope.game = game.data;
+                        $scope.game = game;
                         $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
                         $scope.setBoard();
                     }
@@ -409,20 +438,9 @@ angular.module('TicTacToe')
 
 
     //And off to the races...
-
-    //There is absolutely something going on here that needs attention.
     $scope.setPlayers();
-
     $scope.prepareGame();
-    gameService.current().then(function(game) {
-        if (game.data) {
-            $scope.game = game.data;
-            $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
-            $scope.setBoard();
-        } else {
-            $scope.newGame();
-        }
-
-    });
+    $scope.fetchGame();
+    $scope.setLiveReload();
 
   });
