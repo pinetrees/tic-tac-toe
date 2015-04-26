@@ -27,15 +27,17 @@ angular.module('TicTacToe')
         },
         save: function(game) {
             var deferred = $q.defer();
-            return $http.put(API_ENDPOINT + 'games/' + game.id + '/', game).success(function(data){
+            $http.put(API_ENDPOINT + 'games/' + game.id + '/', game).success(function(data){
                 deferred.resolve(data);
             });
+            return deferred.promise;
         },
         deleteAll: function() {
             var deferred = $q.defer();
-            return $http.get(API_ENDPOINT + 'games/delete_all/').success(function(data){
+            $http.get(API_ENDPOINT + 'games/delete_all/').success(function(data){
                 deferred.resolve(data);
             });
+            return deferred.promise;
         },
         move: function(game, move) {
             var deferred = $q.defer();
@@ -46,9 +48,10 @@ angular.module('TicTacToe')
         },
         reset: function(game) {
             var deferred = $q.defer();
-            return $http.get(API_ENDPOINT + 'games/' + game.id + '/reset/').success(function(data){
+            $http.get(API_ENDPOINT + 'games/' + game.id + '/reset/').success(function(data){
                 deferred.resolve(data);
             });
+            return deferred.promise;
         }
     };
     return factory;

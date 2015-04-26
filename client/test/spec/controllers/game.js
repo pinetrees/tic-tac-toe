@@ -30,6 +30,7 @@ describe('Controller: GameCtrl', function () {
             return deferred.promise;
         }
     }
+
     gameServiceMock = {
         current: function() {
             var deferred = $q.defer();

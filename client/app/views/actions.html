@@ -1,0 +1,27 @@
+<div class="container no-margin full-width">
+    <div class="navbar-header">
+
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#js-navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+
+    </div>
+
+    <div class="collapse navbar-collapse" id="js-navbar-collapse">
+
+        <ul class="nav navbar-nav">
+            <li><a class="href" ng-click="reset()">Reset</a></li>
+            <li><a class="href" ng-click="simulatePlay()">Randomize play</a></li>
+            <li><a class="href" ng-click="clearGameHistory()">Clear the game history</a></li>
+            <li><a class="href" ng-click="togglePrivatePlay()">
+                <span ng-if="!privatePlay">Make games private</span>
+                <span ng-if="privatePlay">Make games public</span>
+            </a></li>
+            <li><a class="href" ng-click="simulateEveryGame()" ng-if="!intervals.playAll">Simulate every possible game</a></li>
+            <li><a class="href" ng-click="stopCompleteSimulation()" ng-if="intervals.playAll">Stop the simulation</a></li>
+        </ul>
+    </div>
+</div>

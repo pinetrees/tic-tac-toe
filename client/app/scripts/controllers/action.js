@@ -13,12 +13,12 @@ angular.module('TicTacToe')
     var _ = window._;
 
     $scope.reset = function() {
-        //Fairly certain that these are redundant now.
         delete $scope.$parent.winner;
         $scope.$parent.gameActive = true;
 
-        gameService.reset($scope.$parent.game).then(function(game) {
-            $scope.$parent.game = game.data;
+        gameService.reset($scope.$parent.game).then(function(data) {
+            console.log('here');
+            $scope.$parent.game = data;
             $scope.player = _.findWhere($scope.$parent.players, {index: $scope.$parent.game.state});
             $scope.$parent.setBoard();
         });
@@ -30,7 +30,7 @@ angular.module('TicTacToe')
                 var play = Math.random() > 0.5;
                 if( $scope.$parent.board[_i][_j] === 0 && play ) {
                     if ( !$scope.$parent.winner ) {
-                        $scope.$parent.move(_i, _j);
+                        $scope.$parent.move(_i, _j, true);
                         return true;
                     }
                 }
@@ -39,7 +39,7 @@ angular.module('TicTacToe')
     };
 
     $scope.simulatePlay = function() {
-        $scope.$parent.prepareGame();
+        $scope.reset();
         gameService.create({}).then(function(game) {
             $scope.$parent.game = game;
             $scope.$parent.setBoard();
@@ -89,6 +89,7 @@ angular.module('TicTacToe')
             var pair = board.shift();
             if( $scope.$parent.winner || board.length === 0 ) {
                 $scope.$parent.stopInterval($scope.$flashInterval);
+                delete $scope.$flashInterval;
             } else {
                 $scope.$parent.move(pair[0], pair[1], true);
             }
@@ -105,17 +106,19 @@ angular.module('TicTacToe')
 
     $scope.simulateEveryGame = function() {
         $scope.intervals.playAll = true;
+        $rootScope.message = 'Just a moment...';
         var games = $scope.getPermutations([0, 1, 2, 3, 4, 5, 6, 7, 8]);
         var k = 0;
         $scope.$completeSimulationInterval = $interval(function() {
             if( k >= games.length ) {
                 $scope.stopCompleteSimulation()
-            } else if ( typeof($scope.childInterval) !== 'undefined' ) {
+            } else if ( typeof($scope.$flashInterval) !== 'undefined' ) {
                 //Do nothing
             } else {
-                $scope.$parent.reset();
+                $scope.reset();
                 $rootScope.message = 'There are ' + (games.length - k).toString() + ' games left!';
                 var board = $scope.mapSequence(games[k]);
+                console.log(board);
                 $scope.flashScenario(board);
                 k++;
             }
@@ -127,6 +130,21 @@ angular.module('TicTacToe')
         delete $scope.intervals.playAll;
         $scope.message = '';
         $scope.$parent.newGame();
+    };
+
+    $scope.togglePrivatePlay = function() {
+        $scope.$parent.privatePlay = !$scope.$parent.privatePlay;
+        $scope.$parent.game.is_private = $scope.$parent.privatePlay;
+        if ( $scope.$parent.privatePlay ) {
+            $scope.$parent.stopInterval($scope.$parent.$liveReloadInterval);
+            delete $scope.$parent.$liveReloadInterval;
+        } else {
+            $scope.$parent.setLiveReload();
+        }
+        gameService.save($scope.$parent.game).then(function(data) {
+            console.log(data);
+            $scope.$parent.game = data;
+        });
     };
 
 

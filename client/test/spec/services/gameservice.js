@@ -49,7 +49,7 @@ describe('Service: gameService', function () {
     httpBackend.expectPUT(_API_ENDPOINT_ + 'games/' + game.id + '/').respond(game);
 
     gameService.save(game).then(function(result) {
-        data = result.data;
+        data = result;
     });
 
     httpBackend.flush();
@@ -60,7 +60,7 @@ describe('Service: gameService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'games/delete_all/').respond({});
 
     gameService.deleteAll().then(function(result) {
-        data = result.data;
+        data = result;
     });
 
     httpBackend.flush();
@@ -89,7 +89,7 @@ describe('Service: gameService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'games/' + game.id + '/reset/').respond(default_game);
 
     gameService.reset(game).then(function(result) {
-        data = result.data;
+        data = result;
     });
 
     httpBackend.flush();

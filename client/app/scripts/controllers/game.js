@@ -35,6 +35,7 @@ angular.module('TicTacToe')
     $scope.lastMove = {};
     $scope.queue = [];
     $scope.moveInProgress = false;
+    $scope.privatePlay = false;
 
     //I've supported speed tic-tac-toe for those with fast fingers. 
     $scope.keyCodes = [49, 50, 51, 52, 53, 54, 55, 56, 57];
