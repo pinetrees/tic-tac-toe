@@ -73,20 +73,18 @@ angular.module('TicTacToe')
             $scope.currentPlayer = $scope.players[0];
         }
 
-        //Persistence.
-        $scope.game.currentPlayer = $scope.currentPlayer.index;
+        $scope.game.current_player = $scope.currentPlayer.index;
     };
 
     $scope.declareWinner = function(playerIndex) {
         if ( !$scope.tie ) {
-            $scope.winner = 'Player ' + playerIndex;
-            $scope._winner = _.findWhere($scope.players, {index: playerIndex});
-            $scope._winner.score += 1;
+            $scope.winner = _.findWhere($scope.players, {index: playerIndex});
+            $scope.winner.score += 1;
         } else {
-            $scope.winner = 'Nobody';
+            $scope.winner = {};
         }
-        $scope.status = 0;
-        $scope.game.isComplete = true;
+        $scope.gameActive = true;
+        $scope.game.is_complete = true;
         return true;
     };
 
@@ -98,6 +96,7 @@ angular.module('TicTacToe')
     // 4. createGame
     // 5. newGame
 
+    // This method simply returns a fresh board.
     $scope.newBoard = function() {
         return [
             [0, 0, 0],
@@ -106,6 +105,7 @@ angular.module('TicTacToe')
         ];
     };
 
+    // Used after a game has been returned from the server, to load the moves into the board.
     $scope.setBoard = function() {
         $scope.board = $scope.newBoard();
         _.each($scope.game.moves, function(move) {
@@ -113,14 +113,16 @@ angular.module('TicTacToe')
         });
     };
 
+    // Reset our default attributes.
     $scope.prepareGame = function() {
         delete $scope.winner;
         delete $scope.tie;
+        $scope.gameActive = true;
         $scope.currentPlayer = $scope.players[0];
-        $scope.status = 1;
         $scope.board = $scope.newBoard();
     };
 
+    //A wrapper to generate a new game from the server.
     $scope.createGame = function() {
         gameService.create().then(function(game) {
             $scope.game = game;
@@ -128,6 +130,7 @@ angular.module('TicTacToe')
         });
     };
 
+    // Take both the client and server side actions to prepare for a new game.
     $scope.newGame = function() {
         $scope.prepareGame();
 
@@ -140,7 +143,7 @@ angular.module('TicTacToe')
     // 1. persistMove
     // 2. makeMove
     // 3. move
-    //Defined separately so that it can be called recursively
+    // This method handles persisting game moves to the server. It is defined separately from makeMove so that it can be called recursively, if we have a queue
     $scope.persistMove = function(move) {
         gameService.move($scope.game, move).then(function(game) {
             $scope.game = game.data;
@@ -154,6 +157,7 @@ angular.module('TicTacToe')
         });
     };
 
+    // This method starts the action of persisting a move to the server. It is coupled with persistMove, to handle a queue, should we have fast action.
     $scope.makeMove = function(row, col) {
         $scope.lastMove = {
             row: row,
@@ -169,11 +173,13 @@ angular.module('TicTacToe')
         }
     };
 
+    // The method to handle making a move on a give row and column. The scope already knows who is making the move. We give the option to keep the move from persisting to the server for simulation or client-only play.
     $scope.move = function(row, col, persistless) {
-        if( !$scope.status ) {
+        if( !$scope.gameActive ) {
             return false;
         }
 
+        //If the position is open, we make the move. Otherwise, we return false.
         if($scope.board[row][col] === 0) {
             $scope.board[row][col] = $scope.currentPlayer.index;
             //I once checked the entire board every time a player moved. I think we can do better.
@@ -188,6 +194,7 @@ angular.module('TicTacToe')
             if( $scope.winner ) {
                 return true;
             }
+
             $scope.changePlayer();
         } else {
             //This position is already occupied
@@ -198,11 +205,24 @@ angular.module('TicTacToe')
 
 
     // LOGIC METHODS
-    // 1. checkTuple
-    // 2. checkTie
-    // 3. checkGame
-    // 4. checkMove
+    // 1. checkTie
+    // 2. checkTuple
+    // 3. checkMove
+    // 4. checkGame
 
+    // A simple check for a tie, by verifying that 1) we have no winner and 2) every position has been occupied. Note that this does not uncover impending ties.
+    $scope.checkTie = function() {
+        if( $scope.winner ) {
+            return false;
+        }
+        if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
+            $scope.tie = true;
+            return $scope.declareWinner();
+        }
+        return false;
+    };
+
+    // This is our atomic, client-side state verification. There are precisely eight possible board tuples which can win the game. This method checks to see if every value of a given tuple has a given player's index. If this is the case, the player has won. If we are checking the entire game, it is sensible to check both players on each tuple, since we have already done the work to structure the tuple. In this case, we pass true for bothPlayers, and the method will execute up to one time for each player.
     $scope.checkTuple = function(tuple, bothPlayers, playerIndex) {
         if( $scope.winner ) {
             return true;
@@ -228,18 +248,37 @@ angular.module('TicTacToe')
         return false;
     };
 
-    $scope.checkTie = function() {
-        if( $scope.winner ) {
-            return false;
+    //This method checks between one and four tuples after each move to see if the player has made a winning play.
+    $scope.checkMove = function(rowIndex, colIndex) {
+
+        //We only need to check for a single player, and we only need to check for possibilities relative to their last move. 
+        var row = $scope.board[rowIndex];
+        if ( $scope.checkTuple(row, false, $scope.currentPlayer.index) ) {
+            return true;
         }
-        if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
-            $scope.tie = true;
-            return $scope.declareWinner();
+
+        var col = $scope.makeColumn(colIndex);
+        if ( $scope.checkTuple(col, false, $scope.currentPlayer.index) ) {
+            return true;
         }
-        return false;
+
+        //If they're on the diagonal, we need to check the cross section. These happen to occur when the parity of the sum of the indicies is even. And yes, we can do better.
+        var isCrossSection = ( ( rowIndex + colIndex ) % 2 ) === 0;
+        if( !$scope.winner && isCrossSection ) {
+            
+            $scope.setCrossSections();
+            if ( $scope.checkTuple($scope.crossSections[0], false, $scope.currentPlayer.index) ) {
+                return true;
+            } else if ( $scope.checkTuple($scope.crossSections[1], false, $scope.currentPlayer.index) ) {
+                return true;
+            }
+        }
+
+        //We'll run a simple check for a tie game.
+        return $scope.checkTie();
     };
 
-    //Stale
+    //Antiquated, but kept around for the ideas it inspired.
     $scope.checkGame = function() {
         //We need to make sure the game hasn't ended with a tie. 
 
@@ -251,8 +290,6 @@ angular.module('TicTacToe')
         //We'll start by looking through the rows
         for ( var i = 0; i < $scope.specs.length; i++ ) {
             
-            $scope.counter = i;
-
             //We may have a winner. If this is the case, we'll break out
             if ( $scope.winner ) {
                 break;
@@ -283,56 +320,23 @@ angular.module('TicTacToe')
         $scope.checkTie();
     };
 
-    $scope.checkMove = function(rowIndex, colIndex) {
-
-        //We only need to check for a single player, and we only need to check for possibilities relative to their last move. Much less work for us.
-        var row = $scope.board[rowIndex];
-        if ( $scope.checkTuple(row, false, $scope.currentPlayer.index) ) {
-            return true;
-        }
-
-        var col = $scope.makeColumn(colIndex);
-        if ( $scope.checkTuple(col, false, $scope.currentPlayer.index) ) {
-            return true;
-        }
-
-        //If they're on the diagonal, we need to check the cross section. These happen to occur when the parity of the sum of the indicies is even. And yes, we can do better.
-        var isCrossSection = ( ( rowIndex + colIndex ) % 2 ) === 0;
-        if( !$scope.winner && isCrossSection ) {
-            $scope.setCrossSections();
-            if ( $scope.checkTuple($scope.crossSections[0], false, $scope.currentPlayer.index) ) {
-                return true;
-            } else if ( $scope.checkTuple($scope.crossSections[1], false, $scope.currentPlayer.index) ) {
-                return true;
-            }
-        }
-
-        //We'll run a simple check for a tie game.
-        return $scope.checkTie();
-    };
-
 
     // UTILITY METHODS
     // 1. makeColumn
-    // 2. columnize
-    // 3. setCrossSections
-    // 4. moveByKey
-    // 5. stopInterval
-    // 6. stop
-    // 7. playScenario
-    // 8. awesomeness
-    // 9. setLiveReload
+    // 2. setCrossSections
+    // 3. moveByKey
+    // 4. stopInterval
+    // 5. playScenario
+    // 6. awesomeness
+    // 7. setLiveReload
 
-    $scope.makeColumn = function(index) {
-        return _.map($scope.board, function(row) { return row[index]; });
+    // Extracts the i-th column from the board.
+    $scope.makeColumn = function(i) {
+        return _.map($scope.board, function(row) { return row[i]; });
         //return _.map($scope.board, $scope.columnize);
     };
 
-    $scope.columnize = function(row) {
-        //Written this way to prevent defining a function inside a loop
-        return row[$scope.counter];
-    };
-
+    // Statically computes the current cross section tuples.
     $scope.setCrossSections = function() {
         $scope.crossSections = [
             [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
@@ -340,6 +344,8 @@ angular.module('TicTacToe')
         ];
         return true;
     };
+
+    // Allows our players to use the number keys to move. 
     $scope.moveByKey = function(e) {
         if( $scope.keyCodes.indexOf(e.keyCode) === -1 ) {
             return;
@@ -349,12 +355,7 @@ angular.module('TicTacToe')
         $scope.move(position[0], position[1]);
     };
 
-    $scope.stopInterval = function() {
-        $interval.cancel($rootScope.$interval);
-        $rootScope.$interval = undefined;
-    };
-
-    $scope.stop = function(interval) {
+    $scope.stopInterval = function(interval) {
         $interval.cancel(interval);
     };
 

@@ -15,7 +15,7 @@ angular.module('TicTacToe')
     $scope.reset = function() {
         //Fairly certain that these are redundant now.
         delete $scope.$parent.winner;
-        $scope.$parent.status = 1;
+        $scope.$parent.gameActive = true;
 
         gameService.reset($scope.$parent.game).then(function(game) {
             $scope.$parent.game = game.data;
@@ -43,9 +43,9 @@ angular.module('TicTacToe')
         gameService.create({}).then(function(game) {
             $scope.$parent.game = game;
             $scope.$parent.setBoard();
-            $rootScope.$interval = $interval(function() {
+            $scope.$simulationInterval = $interval(function() {
                 if( $scope.$parent.winner ) {
-                    $scope.$parent.stopInterval();
+                    $scope.$parent.stopInterval($scope.$simulationInterval);
                 } else {
                     $scope.simulateMove();
                 }
@@ -85,10 +85,10 @@ angular.module('TicTacToe')
 
     //This feature is currently bugged, but worth checking out.
     $scope.flashScenario = function(board) {
-        $scope.$childInterval = $interval(function() {
+        $scope.$flashInterval = $interval(function() {
             var pair = board.shift();
             if( $scope.$parent.winner || board.length === 0 ) {
-                $scope.$parent.stop($scope.childInterval);
+                $scope.$parent.stopInterval($scope.$flashInterval);
             } else {
                 $scope.$parent.move(pair[0], pair[1], true);
             }
@@ -107,11 +107,9 @@ angular.module('TicTacToe')
         $scope.intervals.playAll = true;
         var games = $scope.getPermutations([0, 1, 2, 3, 4, 5, 6, 7, 8]);
         var k = 0;
-        $rootScope.$interval = $interval(function() {
+        $scope.$completeSimulationInterval = $interval(function() {
             if( k >= games.length ) {
-                $scope.$parent.stopInterval();
-                $scope.intervals.playAll = false;
-                $rootScope.message = '';
+                $scope.stopCompleteSimulation()
             } else if ( typeof($scope.childInterval) !== 'undefined' ) {
                 //Do nothing
             } else {
@@ -124,8 +122,8 @@ angular.module('TicTacToe')
         }, $scope.specs.flashSpeed);
     };
 
-    $scope.stopTotalSimulation = function() {
-        $scope.$parent.stopInterval();
+    $scope.stopCompleteSimulation = function() {
+        $scope.$parent.stopInterval($scope.$completeSimulationInterval);
         delete $scope.intervals.playAll;
         $scope.message = '';
         $scope.$parent.newGame();
