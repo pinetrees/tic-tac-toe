@@ -1,0 +1,6 @@
+alias va='vi .aliases'
+alias sa='source .aliases'
+alias make='python manage.py makemigrations'
+alias migrate='python manage.py migrate'
+alias shell='python manage.py shell_plus'
+alias reset='python manage.py reset_db'
