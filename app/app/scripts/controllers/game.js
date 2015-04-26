@@ -14,7 +14,8 @@ angular.module('TicTacToe')
 
     $scope.specs = {
         'length' : 3,
-        'simulationSpeed' : 150,
+        'simulationSpeed' : 100,
+        'flashSimulationSpeed' : 15,
         'flashSpeed' : 500,
     };
 
@@ -166,6 +167,8 @@ angular.module('TicTacToe')
     };
 
     $scope.reset = function() {
+        delete $scope.winner;
+        $scope.status = 1;
         gameService.reset($scope.game).then(function(game) {
             $scope.game = game.data;
             $scope.player = _.findWhere($scope.players, {index: $scope.game.state});
@@ -309,14 +312,11 @@ angular.module('TicTacToe')
 
     $scope.stopInterval = function() {
         $interval.cancel($rootScope.$interval);
-        $scope.$interval = undefined;
+        $rootScope.$interval = undefined;
     };
 
-    $scope.stopPlayingEverything = function() {
-        $scope.stopInterval();
-        delete $scope.intervals.playAll;
-        $scope.message = '';
-        $scope.newGame();
+    $scope.stop = function(interval) {
+        $interval.cancel(interval);
     };
 
     $scope.playScenario = function(board) {

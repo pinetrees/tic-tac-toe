@@ -1,0 +1,23 @@
+{
+  "name": "tic-tac-toe",
+  "version": "0.0.0",
+  "dependencies": {
+    "angular": "~1.3.15",
+    "angular-route": "1.2.16",
+    "angular-resource": "1.2.16",
+    "font-awesome": "~4.3.0",
+    "underscore": "~1.8.3",
+    "angular-underscore": "~0.5.0",
+    "jquery": "~2.1.3",
+    "angular-bootstrap-colorpicker": "3.0.14",
+    "bootstrap-sass-official": "^3.2.0"
+  },
+  "devDependencies": {
+    "angular-mocks": "^1.3.0"
+  },
+  "appPath": "app",
+  "moduleName": "TicTacToe",
+  "resolutions": {
+    "angular": "~1.3.15"
+  }
+}

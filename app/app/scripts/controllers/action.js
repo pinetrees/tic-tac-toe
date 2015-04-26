@@ -80,11 +80,14 @@ angular.module('TicTacToe')
     };
 
     $scope.flashScenario = function(board) {
-        _.each(board, function(pair) {
-            $scope.move(pair[0], pair[1], true);
-        });
-        console.log('just finished flashing');
-        console.log($scope.$parent.board);
+        $scope.$childInterval = $interval(function() {
+            var pair = board.shift();
+            if( $scope.$parent.winner || board.length === 0 ) {
+                $scope.$parent.stop($scope.childInterval);
+            } else {
+                $scope.$parent.move(pair[0], pair[1], true);
+            }
+        }, $scope.$parent.specs.flashSimulationSpeed);
     };
 
     $scope.mapSequence = function(sequence) {
@@ -97,22 +100,30 @@ angular.module('TicTacToe')
 
     //Don't call this. There's a third of a million games.
     $scope.simulateEveryGame = function() {
-        $scope.$parent.intervals.playAll = true;
+        $scope.intervals.playAll = true;
         var games = $scope.getPermutations([0, 1, 2, 3, 4, 5, 6, 7, 8]);
         var k = 0;
         $rootScope.$interval = $interval(function() {
             if( k >= games.length ) {
                 $scope.$parent.stopInterval();
                 $rootScope.message = '';
+            } else if ( typeof($scope.childInterval) !== 'undefined' ) {
+                //Do nothing
             } else {
-                $scope.reset();
-                console.log('just reset');
+                $scope.$parent.reset();
                 $rootScope.message = 'There are ' + (games.length - k).toString() + ' games left!';
                 var board = $scope.mapSequence(games[k]);
                 $scope.flashScenario(board);
                 k++;
             }
         }, $scope.specs.flashSpeed);
+    };
+
+    $scope.stopTotalSimulation = function() {
+        $scope.$parent.stopInterval();
+        delete $scope.intervals.playAll;
+        $scope.message = '';
+        $scope.$parent.newGame();
     };
 
 
