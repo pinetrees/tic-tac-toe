@@ -1,5 +1,5 @@
 from .models import Game, Move
-from board.utility import flatten_pair, flatten, inflate, get_sequences
+from .utility import flatten_pair, flatten, inflate, get_sequences
 
 class GameGenerator:
     sample_sequence = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 1]]

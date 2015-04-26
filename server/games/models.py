@@ -1,7 +1,7 @@
 from django.db import models
 from tic_tac_toe import fields, data
 from players.models import Player
-from board.utility import flatten_pair, flatten
+from .utility import flatten_pair, flatten
 
 # Create your models here.
 class GameManager(models.Manager):
@@ -15,7 +15,7 @@ class Game(models.Model):
     player_two = models.ForeignKey(Player, null=True, related_name="two_games")
     current_player = models.ForeignKey(Player, null=True, related_name="waiting_games")
     game_index = fields.IntegerRangeField(min_value=0, max_value=8, default=0)
-    state = fields.IntegerRangeField(min_value=0, max_value=2, default=0)
+    state = fields.IntegerRangeField(min_value=0, max_value=2, default=1)
     winner = models.ForeignKey(Player, null=True, related_name="games_won")
     is_complete = models.BooleanField(default=False)
 
@@ -35,6 +35,9 @@ class Game(models.Model):
 
 
     def check_move(self, row_index, col_index, state):
+        if self.moves.count() < 5:
+            print "A win is not possible yet"
+            return False
         print "Checking if player " + str(state) + " won on row " + str(row_index) + " and column " + str(col_index)
         row_win = ( self.moves.filter(row=row_index, state=state).count() == 3 )
         if row_win:
@@ -53,14 +56,18 @@ class Game(models.Model):
             if second_cross_section_win:
                 return self.declare_winner(state)
          
+        if self.moves.count() == 9:
+            return self.declare_tie();
+
         return False
 
-    def move(self, row_index, col_index, state):
+    def move(self, row_index=0, col_index=0, state=None):
+        if state is None:
+            state = self.state
         if self.is_complete:
             print "The game is complete"
             return False
-        elif self.state == state:
-            #The player was the last to move
+        elif self.state != state:
             print "It is not this player's turn"
             return False
         elif self.moves.count() >= 9:
@@ -79,9 +86,10 @@ class Game(models.Model):
                     game_index=self.game_index,
                     state=state,
             )
-            self.state = state
+            self.change_state()
             self.save()
-            return self.check_move(row_index, col_index, state)
+            self.check_move(row_index, col_index, state)
+            return True
 
     def is_cross_section(self, row_index, col_index):
         return ( row_index + col_index ) % 2 == 0
@@ -96,6 +104,31 @@ class Game(models.Model):
         self.save()
         print "Player " + str(state) + " won"
         return True
+
+    def declare_tie(self):
+        self.is_complete = True
+        self.save()
+        print "Nobody wins"
+        return False
+
+    def change_state(self):
+        assert self.state in [1, 2]
+        if self.state == 1:
+            self.state = 2
+        else:
+            self.state = 1
+        return self
+
+    def reset(self):
+        self.moves.all().delete()
+        self.current_player = self.player_one
+        self.game_index = 0
+        self.state = 1
+        self.winner = None
+        self.is_complete = False
+        self.save()
+        return self
+
 
 
 class Move(models.Model):

@@ -13,3 +13,10 @@ WINNING_SETS = [
     [[0, 0], [1, 1], [2, 2]],
     [[0, 2], [1, 1], [2, 0]],
 ]
+
+WINNING_SEQUENCES = [
+
+]
+
+FIRST_CROSS_SECTION = WINNING_SETS[6]
+SECOND_CROSS_SECTION = WINNING_SETS[7]
