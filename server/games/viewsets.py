@@ -18,11 +18,16 @@ class GameViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @list_route(methods=['GET'])
+    def new(self, request):
+        game = Game.objects.start_game()
+        serializer = GameSerializer(instance=game)
+        return Response(serializer.data)
+
+    @list_route(methods=['GET'])
     def delete_all(self, request, pk=None):
         Game.objects.all().delete()
         Player.objects.update(score=0)
-        serializer = GameSerializer()
-        return Response(serializer.data)
+        return Response({})
 
 
     @detail_route(methods=['POST'])
@@ -35,7 +40,7 @@ class GameViewSet(viewsets.ModelViewSet):
         serializer = GameSerializer(instance=game)
         return Response(serializer.data)
 
-    @detail_route(methods=['GET', 'POST'])
+    @detail_route(methods=['GET'])
     def reset(self, request, pk=None):
         game = self.get_object()
         game.reset()

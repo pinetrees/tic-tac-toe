@@ -7,7 +7,9 @@ from .utility import flatten_pair, flatten
 class GameManager(models.Manager):
     def start_game(self, *args, **kwargs):
         assert Player.objects.count() >= 2
-        game = Game.objects.create(player_one=Player.objects.all()[0:1][0], player_two=Player.objects.all()[1:2][0])
+        player_one = Player.objects.all()[0:1][0]
+        player_two = Player.objects.all()[1:2][0]
+        game = Game.objects.create(player_one=player_one, player_two=player_two, current_player=player_one)
         return game
 
 class Game(models.Model):
