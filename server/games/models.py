@@ -117,8 +117,10 @@ class Game(models.Model):
         assert self.state in [1, 2]
         if self.state == 1:
             self.state = 2
+            self.current_player = self.player_two
         else:
             self.state = 1
+            self.current_player = self.player_one
         return self
 
     def reset(self):
