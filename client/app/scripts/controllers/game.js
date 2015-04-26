@@ -17,6 +17,7 @@ angular.module('TicTacToe')
         'simulationSpeed' : 100,
         'flashSimulationSpeed' : 15,
         'flashSpeed' : 500,
+        'liveReloadSpeed': 800,
     };
 
     $scope.game = {};
@@ -347,6 +348,7 @@ angular.module('TicTacToe')
         $rootScope.game = $scope.game;
     });
 
+    
     //And off to the races...
     $scope.prepareGame();
     gameService.getCurrent().then(function(game) {
@@ -359,6 +361,26 @@ angular.module('TicTacToe')
         }
 
     });
+
+    $scope.$liveReloadInterval = $interval(function() {
+        gameService.getCurrent().then(function(game) {
+            console.log('live reload');
+            if (game.data) {
+                //If the game hasn't changed, we'll leave things alone.
+                console.log($scope.game.game_index)
+                console.log(game.data.game_index)
+                if (game.data.game_index == $scope.game.game_index) { 
+                    return true;
+                } else {
+                    $scope.game = game.data;
+                    $scope.player = _.findWhere($scope.players, {index: $scope.game.state});
+                    $scope.setBoard();
+                }
+            } else {
+                //We'll do nothing and let the game continue in peace.
+            }
+        });
+    }, $scope.specs.liveReloadSpeed);
 
 
   });

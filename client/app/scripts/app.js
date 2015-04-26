@@ -25,7 +25,7 @@ angular
         redirectTo: '/'
       });
   })
-  .constant('API_ENDPOINT', 'http://127.0.0.1:8000/api/');
+  .constant('API_ENDPOINT', 'http://167.114.31.252:8000/api/');
 
 //}]);
 //app.controller('MainCtrl', ['$scope', '$timeout', '$interval', '$routeParams', '$resource', 'playerService', 'gameService', function ($scope, $timeout, $interval, $routeParams, $resource, playerService, gameService) {
