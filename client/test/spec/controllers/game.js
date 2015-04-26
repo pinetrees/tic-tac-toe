@@ -5,14 +5,41 @@ describe('Controller: GameCtrl', function () {
   // load the controller's module
   beforeEach(module('TicTacToe'));
 
-  var GameCtrl,
-    scope;
+  var GameCtrl, scope, playerServiceMock, gameServiceMock;
 
   // Initialize the controller and a mock scope
-  beforeEach(inject(function ($controller, $rootScope) {
+  beforeEach(inject(function ($controller, $rootScope, $q) {
     scope = $rootScope.$new();
+    var players = [
+        {'name': 'Player 1', 'index': 1, 'color': 'yellow', 'score': 0},
+        {'name': 'Player 2', 'index': 2, 'color': 'green', 'score': 0}
+    ];
+    var game = {"id":123,"player_one":1,"player_two":2,"current_player":1,"game_index":0,"state":1,"winner":null,"is_complete":false,"moves":[]}
+    playerServiceMock = {
+        query: function() {
+            var deferred = $q.defer();
+            deferred.resolve(players);
+            return deferred.promise;
+        }
+    }
+    gameServiceMock = {
+        current: function() {
+            var deferred = $q.defer();
+            deferred.resolve(game);
+            return deferred.promise;
+        },
+        create: function() {
+            var deferred = $q.defer();
+            deferred.resolve(game);
+            return deferred.promise;
+        }
+    }
+    spyOn(playerServiceMock, 'query').and.callThrough();
+    spyOn(gameServiceMock, 'current').and.callThrough();
     GameCtrl = $controller('GameCtrl', {
-      $scope: scope
+      $scope: scope,
+      playerService: playerServiceMock,
+      gameService: gameServiceMock
     });
     //May not be necessary.
     scope.boardIsClean = function () {
@@ -32,8 +59,16 @@ describe('Controller: GameCtrl', function () {
     expect(scope.boardIsClean()).toBe(true);
   });
 
-  it('should have players', function () {
-    scope.setPlayers();
+  it('should have defined two players', function () {
+    expect(scope.players.length).toBe(2);
+  });
+
+  it('should have set the players', function () {
+    scope.$apply();
+    expect(playerServiceMock.query).toHaveBeenCalled();
+    expect(scope.players.length).toBe(2);
+    expect(scope.players[0].color).toBe('yellow');
+    expect(scope.players[1].color).toBe('green');
   });
 
   it('should change the current player', function () {

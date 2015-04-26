@@ -40,9 +40,11 @@
             <ul class="nav navbar-nav">
               <li><a class="href" ng-click="reset()">Reset</a></li>
               <li><a class="href" ng-click="simulatePlay()">Randomize play</a></li>
+              <li><a class="href" ng-click="clearGameHistory()">Clear the game history</a></li>
+              <span ng-if="simulationIsNotBroken">
               <li><a class="href" ng-click="simulateEveryGame()" ng-if="!intervals.playAll">Simulate every possible game</a></li>
               <li><a class="href" ng-click="stopTotalSimulation()" ng-if="intervals.playAll">Stop the simulation</a></li>
-              <li><a class="href" ng-click="clearGameHistory()">Clear the game history</a></li>
+              </span>
             </ul>
           </div>
         </div>

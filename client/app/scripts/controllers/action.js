@@ -13,6 +13,10 @@ angular.module('TicTacToe')
     var _ = window._;
 
     $scope.reset = function() {
+        //Fairly certain that these are redundant now.
+        delete $scope.$parent.winner;
+        $scope.$parent.status = 1;
+
         gameService.reset($scope.$parent.game).then(function(game) {
             $scope.$parent.game = game.data;
             $scope.player = _.findWhere($scope.$parent.players, {index: $scope.$parent.game.state});
@@ -37,7 +41,7 @@ angular.module('TicTacToe')
     $scope.simulatePlay = function() {
         $scope.$parent.prepareGame();
         gameService.create({}).then(function(game) {
-            $scope.$parent.game = game.data;
+            $scope.$parent.game = game;
             $scope.$parent.setBoard();
             $rootScope.$interval = $interval(function() {
                 if( $scope.$parent.winner ) {

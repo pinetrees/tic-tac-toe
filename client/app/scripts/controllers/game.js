@@ -12,6 +12,16 @@ angular.module('TicTacToe')
 
     var _ = window._;
 
+    // SCOPE ATTRIBUTES
+    // 1. specs
+    // 2. game
+    // 3. intervals
+    // 4. queue
+    // 5. moveInProgress
+    // 6. keyCodes
+    // 7. keyMappings
+    // 8. players
+
     $scope.specs = {
         'length' : 3,
         'simulationSpeed' : 100,
@@ -25,20 +35,68 @@ angular.module('TicTacToe')
     $scope.queue = [];
     $scope.moveInProgress = false;
 
+    //I've supported speed tic-tac-toe for those with fast fingers. 
+    $scope.keyCodes = [49, 50, 51, 52, 53, 54, 55, 56, 57];
+    $scope.keyMappings = {
+        49: [2, 0],
+        50: [2, 1],
+        51: [2, 2],
+        52: [1, 0],
+        53: [1, 1],
+        54: [1, 2],
+        55: [0, 0],
+        56: [0, 1],
+        57: [0, 2],
+    };
+
     $scope.players = [
         {'name': 'Player 1', 'index': 1, 'color': 'red', 'score': 0},
         {'name': 'Player 2', 'index': 2, 'color': 'blue', 'score': 0}
     ];
 
+    // PLAYER METHODS
+    // 1. setPlayers
+    // 2. changePlayer
+    // 3. declareWinner
+
     $scope.setPlayers = function() {
         playerService.query().then(function(players) {
-            _.extend($scope.players[0], players.data[0]);
-            _.extend($scope.players[1], players.data[1]);
+            _.extend($scope.players[0], players[0]);
+            _.extend($scope.players[1], players[1]);
         });
     };
 
-    //There is absolutely something going on here that needs attention.
-    $scope.setPlayers();
+    $scope.changePlayer = function() {
+        if ($scope.currentPlayer.index === 1) {
+            $scope.currentPlayer = $scope.players[1];
+        } else {
+            $scope.currentPlayer = $scope.players[0];
+        }
+
+        //Persistence.
+        $scope.game.currentPlayer = $scope.currentPlayer.index;
+    };
+
+    $scope.declareWinner = function(playerIndex) {
+        if ( !$scope.tie ) {
+            $scope.winner = 'Player ' + playerIndex;
+            $scope._winner = _.findWhere($scope.players, {index: playerIndex});
+            $scope._winner.score += 1;
+        } else {
+            $scope.winner = 'Nobody';
+        }
+        $scope.status = 0;
+        $scope.game.isComplete = true;
+        return true;
+    };
+
+
+    // BOARD/GAME METHODS
+    // 1. newBoard
+    // 2. setBoard
+    // 3. perpareGame
+    // 4. createGame
+    // 5. newGame
 
     $scope.newBoard = function() {
         return [
@@ -55,21 +113,33 @@ angular.module('TicTacToe')
         });
     };
 
-    $scope.makeMove = function(row, col) {
-        $scope.lastMove = {
-            row: row,
-            col: col,
-            state: $scope.currentPlayer.index,
-        };
-        if ($scope.moveInProgress) {
-            $scope.message = 'There is a move in progress. Your move has been queued.';
-            $scope.queue.push($scope.lastMove);
-        } else {
-            $scope.moveInProgress = true;
-            $scope.persistMove($scope.lastMove);
-        }
+    $scope.prepareGame = function() {
+        delete $scope.winner;
+        delete $scope.tie;
+        $scope.currentPlayer = $scope.players[0];
+        $scope.status = 1;
+        $scope.board = $scope.newBoard();
     };
 
+    $scope.createGame = function() {
+        gameService.create().then(function(game) {
+            $scope.game = game;
+            $scope.setBoard();
+        });
+    };
+
+    $scope.newGame = function() {
+        $scope.prepareGame();
+
+        //If our server is running, we want to run our new game through it.
+        $scope.createGame();
+    };
+
+
+    // MOVE METHODS
+    // 1. persistMove
+    // 2. makeMove
+    // 3. move
     //Defined separately so that it can be called recursively
     $scope.persistMove = function(move) {
         gameService.move($scope.game, move).then(function(game) {
@@ -84,35 +154,19 @@ angular.module('TicTacToe')
         });
     };
 
-    $scope.prepareGame = function() {
-        delete $scope.winner;
-        delete $scope.tie;
-        $scope.currentPlayer = $scope.players[0];
-        $scope.status = 1;
-        $scope.board = $scope.newBoard();
-    };
-
-    $scope.newGame = function() {
-        $scope.prepareGame();
-
-        //If our server is running, we want to run our new game through it.
-        $scope.createGame();
-    };
-
-    $scope.createGame = function() {
-        gameService.create().then(function(game) {
-            $scope.game = game.data;
-            $scope.setBoard();
-        });
-    };
-
-    
-    $scope.setCrossSections = function() {
-        $scope.crossSections = [
-            [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
-            [$scope.board[0][2], $scope.board[1][1], $scope.board[2][0]]
-        ];
-        return true;
+    $scope.makeMove = function(row, col) {
+        $scope.lastMove = {
+            row: row,
+            col: col,
+            state: $scope.currentPlayer.index,
+        };
+        if ($scope.moveInProgress) {
+            $scope.message = 'There is a move in progress. Your move has been queued.';
+            $scope.queue.push($scope.lastMove);
+        } else {
+            $scope.moveInProgress = true;
+            $scope.persistMove($scope.lastMove);
+        }
     };
 
     $scope.move = function(row, col, persistless) {
@@ -142,40 +196,12 @@ angular.module('TicTacToe')
 
     };
 
-    $scope.changePlayer = function() {
-        if ($scope.currentPlayer.index === 1) {
-            $scope.currentPlayer = $scope.players[1];
-        } else {
-            $scope.currentPlayer = $scope.players[0];
-        }
 
-        //Persistence.
-        $scope.game.currentPlayer = $scope.currentPlayer.index;
-    };
-
-    $scope.declareWinner = function(playerIndex) {
-        if ( !$scope.tie ) {
-            $scope.winner = 'Player ' + playerIndex;
-            $scope._winner = _.findWhere($scope.players, {index: playerIndex});
-            $scope._winner.score += 1;
-        } else {
-            $scope.winner = 'Nobody';
-        }
-        $scope.status = 0;
-        $scope.game.isComplete = true;
-        return true;
-    };
-
-    $scope.reset = function() {
-        delete $scope.winner;
-        $scope.status = 1;
-        gameService.reset($scope.game).then(function(game) {
-            $scope.game = game.data;
-            $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
-            $scope.setBoard();
-        });
-    };
-
+    // LOGIC METHODS
+    // 1. checkTuple
+    // 2. checkTie
+    // 3. checkGame
+    // 4. checkMove
 
     $scope.checkTuple = function(tuple, bothPlayers, playerIndex) {
         if( $scope.winner ) {
@@ -192,12 +218,14 @@ angular.module('TicTacToe')
         });
 
         if ( won ) {
-            $scope.declareWinner(playerIndex);
+            return $scope.declareWinner(playerIndex);
         }
 
         if( !$scope.winner && bothPlayers ) {
-            $scope.checkTuple(tuple, false, 2);
+            return $scope.checkTuple(tuple, false, 2);
         }
+
+        return false;
     };
 
     $scope.checkTie = function() {
@@ -206,16 +234,12 @@ angular.module('TicTacToe')
         }
         if ( _.every( _.flatten( $scope.board ), _.identity ) ) {
             $scope.tie = true;
-            $scope.declareWinner();
+            return $scope.declareWinner();
         }
-        return true;
+        return false;
     };
 
-    $scope.columnize = function(row) {
-        //This may be broken, on account of i's mysterious existence...check as soon as you can.
-        return row[$scope.counter];
-    };
-
+    //Stale
     $scope.checkGame = function() {
         //We need to make sure the game hasn't ended with a tie. 
 
@@ -242,7 +266,7 @@ angular.module('TicTacToe')
             $scope.checkTuple(row, true);
 
             //No one has won yet. Before we move to the next row, we'll check the associated column
-            var col = _.map($scope.board, $scope.columnize);
+            var col = $scope.makeColumn(i);
 
 
             //Similarly, if player one doesn't have all the cells in this column, we'll check the same for player 2
@@ -263,39 +287,58 @@ angular.module('TicTacToe')
 
         //We only need to check for a single player, and we only need to check for possibilities relative to their last move. Much less work for us.
         var row = $scope.board[rowIndex];
-        $scope.checkTuple(row, false, $scope.currentPlayer.index);
+        if ( $scope.checkTuple(row, false, $scope.currentPlayer.index) ) {
+            return true;
+        }
 
         var col = $scope.makeColumn(colIndex);
-        $scope.checkTuple(col, false, $scope.currentPlayer.index);
+        if ( $scope.checkTuple(col, false, $scope.currentPlayer.index) ) {
+            return true;
+        }
 
         //If they're on the diagonal, we need to check the cross section. These happen to occur when the parity of the sum of the indicies is even. And yes, we can do better.
         var isCrossSection = ( ( rowIndex + colIndex ) % 2 ) === 0;
         if( !$scope.winner && isCrossSection ) {
             $scope.setCrossSections();
-            $scope.checkTuple($scope.crossSections[0], false, $scope.currentPlayer.index);
-            $scope.checkTuple($scope.crossSections[1], false, $scope.currentPlayer.index);
+            if ( $scope.checkTuple($scope.crossSections[0], false, $scope.currentPlayer.index) ) {
+                return true;
+            } else if ( $scope.checkTuple($scope.crossSections[1], false, $scope.currentPlayer.index) ) {
+                return true;
+            }
         }
 
         //We'll run a simple check for a tie game.
-        $scope.checkTie();
+        return $scope.checkTie();
     };
+
+
+    // UTILITY METHODS
+    // 1. makeColumn
+    // 2. columnize
+    // 3. setCrossSections
+    // 4. moveByKey
+    // 5. stopInterval
+    // 6. stop
+    // 7. playScenario
+    // 8. awesomeness
+    // 9. setLiveReload
 
     $scope.makeColumn = function(index) {
         return _.map($scope.board, function(row) { return row[index]; });
+        //return _.map($scope.board, $scope.columnize);
     };
 
-    //I've supported speed tic-tac-toe for those with fast fingers. 
-    $scope.keyCodes = [49, 50, 51, 52, 53, 54, 55, 56, 57];
-    $scope.keyMappings = {
-        49: [2, 0],
-        50: [2, 1],
-        51: [2, 2],
-        52: [1, 0],
-        53: [1, 1],
-        54: [1, 2],
-        55: [0, 0],
-        56: [0, 1],
-        57: [0, 2],
+    $scope.columnize = function(row) {
+        //Written this way to prevent defining a function inside a loop
+        return row[$scope.counter];
+    };
+
+    $scope.setCrossSections = function() {
+        $scope.crossSections = [
+            [$scope.board[0][0], $scope.board[1][1], $scope.board[2][2]],
+            [$scope.board[0][2], $scope.board[1][1], $scope.board[2][0]]
+        ];
+        return true;
     };
     $scope.moveByKey = function(e) {
         if( $scope.keyCodes.indexOf(e.keyCode) === -1 ) {
@@ -315,6 +358,7 @@ angular.module('TicTacToe')
         $interval.cancel(interval);
     };
 
+    //This is stale
     $scope.playScenario = function(board) {
         $scope.newGame();
         var i = 0;
@@ -360,10 +404,14 @@ angular.module('TicTacToe')
                 }
             });
         }, $scope.specs.liveReloadSpeed);
-    }
+    };
 
 
     //And off to the races...
+
+    //There is absolutely something going on here that needs attention.
+    $scope.setPlayers();
+
     $scope.prepareGame();
     gameService.current().then(function(game) {
         if (game.data) {

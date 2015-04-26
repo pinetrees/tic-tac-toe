@@ -27,7 +27,7 @@ describe('Service: playerService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'players/').respond(players);
 
     playerService.query().then(function(result) {
-        data = result.data
+        data = result
     });
 
     httpBackend.flush()

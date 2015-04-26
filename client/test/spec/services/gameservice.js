@@ -36,7 +36,7 @@ describe('Service: gameService', function () {
     httpBackend.expectGET(_API_ENDPOINT_ + 'games/new/').respond(game);
 
     gameService.create().then(function(result) {
-        data = result.data
+        data = result
     });
 
     httpBackend.flush()

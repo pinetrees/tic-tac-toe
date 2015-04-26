@@ -19,9 +19,10 @@ angular.module('TicTacToe')
         },
         create: function() {
             var deferred = $q.defer();
-            return $http.get(API_ENDPOINT + 'games/new/').success(function(data){
+            $http.get(API_ENDPOINT + 'games/new/').success(function(data){
                 deferred.resolve(data);
             });
+            return deferred.promise;
         },
         save: function(game) {
             var deferred = $q.defer();

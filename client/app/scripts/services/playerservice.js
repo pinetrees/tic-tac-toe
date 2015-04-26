@@ -12,9 +12,10 @@ angular.module('TicTacToe')
       var factory = {
           query: function() {
               var deferred = $q.defer();
-              return $http.get(API_ENDPOINT + 'players/').success(function(data){
+              $http.get(API_ENDPOINT + 'players/').success(function(data){
                   deferred.resolve(data);
               });
+              return deferred.promise;
           },
           get: function(player) {
               var deferred = $q.defer();

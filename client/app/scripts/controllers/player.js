@@ -15,7 +15,7 @@ angular.module('TicTacToe')
 
     $scope.$watch('player.score', function(newValue, oldValue) {
         //This will get us out of mostly everything, except the case where our player only has one point and we've just loaded the page. It is okay for today.
-        if (newValue != oldValue + 1) {
+        if (newValue !== oldValue + 1) {
             return false;
         } else {
             playerService.save($scope.player);
