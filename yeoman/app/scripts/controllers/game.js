@@ -15,7 +15,7 @@ angular.module('TicTacToe')
     $scope.specs = {
         'length' : 3,
         'simulationSpeed' : 150,
-        'flashSpeed' : 2000,
+        'flashSpeed' : 500,
     };
 
     $scope.game = {};
@@ -333,61 +333,6 @@ angular.module('TicTacToe')
         }, $scope.specs.simulationSpeed);
     };
 
-    $scope.flashScenario = function(board) {
-        _.each(board, function(pair) {
-            $scope.move(pair[0], pair[1], true);
-        });
-    };
-
-    $scope.getPermutations = function(input) {
-        
-        $scope.permArr = [];
-        $scope.usedChars = [];
-        return $scope.permute(input);
-
-    };
-
-    $scope.permute = function(input) {
-        var i, ch;
-        for (i = 0; i < input.length; i++) {
-          ch = input.splice(i, 1)[0];
-          $scope.usedChars.push(ch);
-          if (input.length === 0) {
-            $scope.permArr.push($scope.usedChars.slice());
-          }
-          $scope.permute(input);
-          input.splice(i, 0, ch);
-          $scope.usedChars.pop();
-        }
-        return $scope.permArr;
-    };
-
-    $scope.mapSequence = function(sequence) {
-        var board = [];
-        _.each(sequence, function(index) {
-            board.push([Math.floor(index / 3), index % 3]);
-        });
-        return board;
-    };
-
-    //Don't call this. There's a third of a million games.
-    $scope.playEverything = function() {
-        $scope.intervals.playAll = true;
-        var games = $scope.getPermutations([0, 1, 2, 3, 4, 5, 6, 7, 8]);
-        var k = 0;
-        $scope.$interval = $interval(function() {
-            if( k >= games.length ) {
-                $scope.stopInterval();
-            } else {
-                $scope.reset();
-                $scope.message = 'There are ' + (games.length - k).toString() + ' games left!';
-                var board = $scope.mapSequence(games[k]);
-                $scope.flashScenario(board);
-                k++;
-            }
-        }, $scope.specs.flashSpeed);
-    };
-
     $scope.awesomeness = function(player) {
         var totalPoints = $scope.players[0].score + $scope.players[1].score;
         if( totalPoints === 0 ) {
@@ -399,7 +344,7 @@ angular.module('TicTacToe')
 
     //This is not doing anything.
     $scope.$watch('game', function() {
-        $rootScope.game = $scope.game
+        $rootScope.game = $scope.game;
     });
 
     //And off to the races...
