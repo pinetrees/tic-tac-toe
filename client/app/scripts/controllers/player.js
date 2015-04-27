@@ -9,8 +9,11 @@
  */
 angular.module('TicTacToe')
   .controller('PlayerCtrl', function ($scope, playerService) {
+    //We don't need to pass the player in, since they are already attached to the scope. I haven't had a chance to refactor this yet.
     $scope.update = function(player) {
-        playerService.save(player);
+        playerService.save(player).then(function(data) {
+            $scope.player = data;
+        });
     };
 
     $scope.$watch('player.score', function(newValue, oldValue) {

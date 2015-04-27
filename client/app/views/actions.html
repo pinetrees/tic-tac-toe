@@ -20,8 +20,10 @@
                 <span ng-if="!privatePlay">Make games private</span>
                 <span ng-if="privatePlay">Make games public</span>
             </a></li>
+            <span class="hide"><!-- Because it is not yet working -->
             <li><a class="href" ng-click="simulateEveryGame()" ng-if="!intervals.playAll">Simulate every possible game</a></li>
             <li><a class="href" ng-click="stopCompleteSimulation()" ng-if="intervals.playAll">Stop the simulation</a></li>
+            </span>
         </ul>
     </div>
 </div>
