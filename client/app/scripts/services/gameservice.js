@@ -15,6 +15,8 @@ angular.module('TicTacToe')
             var deferred = $q.defer();
             $http.get(API_ENDPOINT + 'games/current/').success(function(data){
                 deferred.resolve(data);
+            })
+            .error(function(data, status){
             });
             return deferred.promise;
         },
