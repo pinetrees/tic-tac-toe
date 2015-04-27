@@ -26,7 +26,7 @@ angular.module('TicTacToe')
         'length' : 3,
         'simulationSpeed' : 100,
         'flashSimulationSpeed' : 100,
-        'flashSpeed' : 3000,
+        'flashInterval' : 3000,
         'liveReloadSpeed': 800,
     };
 

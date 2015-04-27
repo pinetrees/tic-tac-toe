@@ -17,9 +17,8 @@ angular.module('TicTacToe')
         $scope.$parent.gameActive = true;
 
         gameService.reset($scope.$parent.game).then(function(data) {
-            console.log('here');
             $scope.$parent.game = data;
-            $scope.player = _.findWhere($scope.$parent.players, {index: $scope.$parent.game.state});
+            $scope.$parent.currentPlayer = _.findWhere($scope.$parent.players, {index: $scope.$parent.game.state});
             $scope.$parent.setBoard();
         });
     };
@@ -30,12 +29,12 @@ angular.module('TicTacToe')
                 var play = Math.random() > 0.5;
                 if( $scope.$parent.board[_i][_j] === 0 && play ) {
                     if ( !$scope.$parent.winner ) {
-                        $scope.$parent.move(_i, _j, true);
-                        return true;
+                        return $scope.$parent.move(_i, _j, true);
                     }
                 }
             }
         }
+        return false;
     };
 
     $scope.simulatePlay = function() {
@@ -83,7 +82,14 @@ angular.module('TicTacToe')
 
     };
 
-    //This feature is currently bugged, but worth checking out.
+    $scope.mapSequence = function(sequence) {
+        var board = [];
+        _.each(sequence, function(index) {
+            board.push([Math.floor(index / 3), index % 3]);
+        });
+        return board;
+    };
+
     $scope.flashScenario = function(board) {
         $scope.$flashInterval = $interval(function() {
             var pair = board.shift();
@@ -94,14 +100,6 @@ angular.module('TicTacToe')
                 $scope.$parent.move(pair[0], pair[1], true);
             }
         }, $scope.$parent.specs.flashSimulationSpeed);
-    };
-
-    $scope.mapSequence = function(sequence) {
-        var board = [];
-        _.each(sequence, function(index) {
-            board.push([Math.floor(index / 3), index % 3]);
-        });
-        return board;
     };
 
     $scope.simulateEveryGame = function() {
@@ -122,7 +120,7 @@ angular.module('TicTacToe')
                 $scope.flashScenario(board);
                 k++;
             }
-        }, $scope.specs.flashSpeed);
+        }, $scope.specs.flashInterval);
     };
 
     $scope.stopCompleteSimulation = function() {

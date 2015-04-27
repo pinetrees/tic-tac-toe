@@ -59,7 +59,7 @@ describe('Controller: GameCtrl', function () {
       playerService: playerServiceMock,
       gameService: gameServiceMock
     });
-    //May not be necessary.
+
     scope.boardIsClean = function () {
         return ( _.some( _.flatten(scope.board), _.identity) == false );
     }
