@@ -27,9 +27,9 @@ module.exports = function(config) {
       'bower_components/angular-underscore/angular-underscore.js',
       'bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
       'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js',
+      'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
-      'bower_components/angular-bootstrap/ui-bootstrap.js',
       'bower_components/ui-iconpicker/dist/scripts/ui-iconpicker.js',
       'app/scripts/**/*.js',
       'test/mock/**/*.js',
