@@ -1,4 +1,6 @@
 from django.test import TestCase
+from django.core.urlresolvers import reverse
+from rest_framework.test import APITestCase
 from .models import Game, Move
 from .utility import flatten_pair, flatten, inflate_pair, inflate
 from players.models import Player
@@ -94,3 +96,77 @@ class GameTests(TestCase):
 
             self.setUp()
 
+
+class GameAPITests(APITestCase):
+    def setUp(self):
+        PlayersGenerator().players()
+
+    def test_current(self):
+        url = '/api/games/current/'
+        response = self.client.get(url, format='json')
+        game = response.data
+        self.assertEqual(game['game_index'], 0)
+        self.assertEqual(game['state'], 1)
+        self.assertEqual(game['winner'], None)
+        self.assertEqual(game['is_complete'], False)
+        self.assertEqual(game['is_private'], False)
+
+    def test_new(self):
+        url = '/api/games/new/'
+        response = self.client.get(url, format='json')
+        game = response.data
+        self.assertEqual(game['game_index'], 0)
+        self.assertEqual(game['state'], 1)
+        self.assertEqual(game['winner'], None)
+        self.assertEqual(game['is_complete'], False)
+        self.assertEqual(game['is_private'], False)
+
+    def test_delete_all(self):
+        for i in range(3):
+            Game.objects.create()
+        self.assertEqual(Game.objects.count(), 3)
+        url = '/api/games/delete_all/'
+        response = self.client.get(url, format='json')
+        self.assertEqual(Game.objects.count(), 0)
+
+    def test_move(self):
+        game = Game.objects.start_game()
+        url = '/api/games/' + str(game.id) + '/move/'
+        move = {'row': 0, 'col': 0, 'state': 1}
+        response = self.client.post(url, move, format='json')
+        self.assertEqual(Game.objects.last().moves.count(), 1)
+
+        _move = Game.objects.last().moves.last()
+        self.assertEqual(move['row'], _move.row)
+        self.assertEqual(move['col'], _move.col)
+        self.assertEqual(move['state'], _move.state)
+
+        _game = response.data
+        self.assertEqual(_game['id'], game.id)
+        self.assertEqual(len(_game['moves']), 1)
+
+        __move = _game['moves'][0]
+        self.assertEqual(__move['row'], move['row'])
+        self.assertEqual(__move['col'], move['col'])
+        self.assertEqual(__move['state'], move['state'])
+
+
+    def test_reset(self):
+        game = Game.objects.start_game()
+        game.move(0, 0, 1)
+        self.assertEqual(game.moves.count(), 1)
+        self.assertEqual(game.game_index, 1)
+        self.assertEqual(game.state, 2)
+
+        url = '/api/games/' + str(game.id) + '/reset/'
+        response = self.client.get(url, format="json")
+
+        game = Game.objects.get(pk=game.id)
+        self.assertEqual(game.moves.count(), 0)
+        self.assertEqual(game.game_index, 0)
+        self.assertEqual(game.state, 1)
+
+        game = response.data
+        self.assertEqual(len(game['moves']), 0)
+        self.assertEqual(game['game_index'], 0)
+        self.assertEqual(game['state'], 1)

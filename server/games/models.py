@@ -42,7 +42,6 @@ class Game(models.Model):
         if self.moves.count() < 5:
             print "A win is not possible yet"
             return False
-        print "Checking if player " + str(state) + " won on row " + str(row_index) + " and column " + str(col_index)
         row_win = ( self.moves.filter(row=row_index, state=state).count() == 3 )
         if row_win:
             return self.declare_winner(state)
@@ -105,13 +104,11 @@ class Game(models.Model):
         else:
             self.winner = self.player_two
         self.save()
-        print "Player " + str(state) + " won"
         return True
 
     def declare_tie(self):
         self.is_complete = True
         self.save()
-        print "Nobody wins"
         return False
 
     def change_state(self):
