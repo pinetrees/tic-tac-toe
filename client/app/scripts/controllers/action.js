@@ -14,6 +14,7 @@ angular.module('TicTacToe')
 
     $scope.reset = function() {
         delete $scope.$parent.winner;
+        delete $scope.$parent.tie;
         $scope.$parent.gameActive = true;
 
         if ($scope.$parent.usingServer) {
