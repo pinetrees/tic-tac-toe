@@ -1,16 +1,26 @@
 # tic-tac-toe
-##Client
-1. npm install - its a little big due to karma / phantomjs
-2. bower install
-3. grunt serve
 
 ##Server
-1. virtualenv env
+#To build, cd server && chmod +x build.sh && ./build.sh, or just:
+1. cd server && virtualenv env
 2. source env/bin/activate
 3. pip install -r requirements.txt
-4. python manage.py makemigrations
-5. python manage.py migrate
-6. python manage.py runserver
+4. python manage.py test
+5. python manage.py makemigrations
+6. python manage.py migrate
+7. python manage.py loaddata fixtures/players.Player.json
+7. python manage.py runserver
+
+##To run, chmod +x run.sh && ./run.sh [$ip:$port], or just:
+python manage.py runserver [$ip:$port]
+
+##Client
+1. cd client && npm install - its a little big due to karma / phantomjs
+2. bower install
+3. grunt test - you may need to install PhantomJS through your package manager (i.e. apt-get install phantomjs)
+3. grunt serve
+
+* Port and hostname modifications can be made in Gruntfile.js, API endpoint modification can be made to app/js/app.js
 
 ##Features
 * Player names
