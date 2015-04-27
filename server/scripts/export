@@ -1,0 +1,1 @@
+python2.7 manage.py dumpdata $1 --indent 4 > fixtures/$1.json

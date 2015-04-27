@@ -1,0 +1,20 @@
+[
+{
+    "fields": {
+        "color": "red",
+        "score": 0,
+        "name": "Player 1"
+    },
+    "model": "players.player",
+    "pk": 1
+},
+{
+    "fields": {
+        "color": "blue",
+        "score": 0,
+        "name": "Player 2"
+    },
+    "model": "players.player",
+    "pk": 2
+}
+]

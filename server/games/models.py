@@ -20,6 +20,7 @@ class Game(models.Model):
     state = fields.IntegerRangeField(min_value=0, max_value=2, default=1)
     winner = models.ForeignKey(Player, null=True, related_name="games_won")
     is_complete = models.BooleanField(default=False)
+    is_private = models.BooleanField(default=False)
 
     objects = GameManager()
 
@@ -49,7 +50,6 @@ class Game(models.Model):
         if col_win:
             return self.declare_winner(state)
 
-        #Clean this up, damn it!
         if self.is_cross_section(row_index, col_index):
             first_cross_section_win = ( self.moves.filter(position__in=flatten(data.FIRST_CROSS_SECTION), state=state).count() == 3 )
             if first_cross_section_win:

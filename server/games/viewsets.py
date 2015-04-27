@@ -11,7 +11,7 @@ class GameViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'])
     def current(self, request):
-        game = Game.objects.filter(is_complete=False).last()
+        game = Game.objects.filter(is_complete=False, is_private=False).last()
         if game is None:
             game = Game.objects.start_game()
         serializer = GameSerializer(instance=game)

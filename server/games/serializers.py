@@ -15,7 +15,7 @@ class GameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ('id', 'player_one', 'player_two', 'current_player', 'game_index', 'state', 'winner', 'is_complete', 'moves')
+        fields = ('id', 'player_one', 'player_two', 'current_player', 'game_index', 'state', 'winner', 'is_complete', 'is_private', 'moves')
 
     
     def get_moves(self, game):

@@ -1,8 +1,9 @@
 from django.test import TestCase
 from .models import Game, Move
-from .utility import inflate_pair, inflate
+from .utility import flatten_pair, flatten, inflate_pair, inflate
 from players.models import Player
 from players.generators import PlayersGenerator
+from tic_tac_toe.data import WINNING_SETS
 
 # Create your tests here.
 class GameTests(TestCase):
@@ -12,12 +13,12 @@ class GameTests(TestCase):
         Game.objects.start_game()
         self.game = Game.objects.last()
 
+
     def test_starting_state(self):
         self.assertEqual(self.game.moves.count(), 0)
         self.assertEqual(self.game.is_complete, False) 
         self.assertEqual(self.game.winner, None) 
         
-
     def test_first_move(self):
         self.assertEqual(self.game.move(0, 0, 1), True)
         self.assertEqual(self.game.moves.count(), 1)
@@ -36,7 +37,9 @@ class GameTests(TestCase):
     def test_move_on_full_board(self):
         for i in range(9):
             pair = inflate_pair(i);
-            self.game.moves.add(Move.objects.create(row=pair[0], col=pair[1], position=i, state=self.game.state))
+            self.game.moves.add(
+                    Move.objects.create(row=pair[0], col=pair[1], position=i, state=self.game.state)
+            )
             self.game.change_state();
         self.assertEqual(self.game.moves.count(), 9)
         self.is_complete = False
@@ -74,3 +77,20 @@ class GameTests(TestCase):
             else:
                 self.assertEqual(self.game.move(coordinate[0], coordinate[1], self.game.state), False)
             self.assertEqual(total_moves, self.game.moves.count())
+
+    def test_win_states(self):
+        for winning_set in WINNING_SETS:
+            #Add two moves to pass our count check. We'll do it illegally, but not in a way which interferes with our logic.
+            self.game.moves.add(Move.objects.create(row=0, col=0, position=0, state=2))
+            self.game.moves.add(Move.objects.create(row=0, col=0, position=0, state=2))
+            for pair in winning_set:
+                self.game.moves.add(
+                    Move.objects.create(row=pair[0], col=pair[1], position=flatten_pair(pair), state=1)
+                )
+
+            #We check that each of these moves, if played last, would result in a win
+            for pair in winning_set:
+                self.assertEqual(self.game.check_move(pair[0], pair[1], state=1), True)
+
+            self.setUp()
+

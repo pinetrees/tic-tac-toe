@@ -1,0 +1,7 @@
+source env/bin/activate
+pip install -r requirements.txt
+python manage.py test
+python manage.py reset_db
+python manage.py makemigrations
+python manage.py migrate
+scripts/import players.Player
