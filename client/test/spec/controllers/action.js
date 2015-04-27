@@ -58,6 +58,11 @@ describe('Controller: ActionCtrl', function () {
             var deferred = $q.defer();
             deferred.resolve({});
             return deferred.promise;
+        },
+        save: function(game) {
+            var deferred = $q.defer();
+            deferred.resolve(game);
+            return deferred.promise;
         }
     }
 
@@ -67,6 +72,7 @@ describe('Controller: ActionCtrl', function () {
     spyOn(gameServiceMock, 'move').and.callThrough();
     spyOn(gameServiceMock, 'reset').and.callThrough();
     spyOn(gameServiceMock, 'deleteAll').and.callThrough();
+    spyOn(gameServiceMock, 'save').and.callThrough();
 
     GameCtrl = $controller('GameCtrl', {
       $scope: $parent,
@@ -166,12 +172,49 @@ describe('Controller: ActionCtrl', function () {
   });
 
   it('should play out a game scenario, quickly', function () {
+    scope.reset();
     var sequence = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    var board = scope.mapSequence(sequence);
     expect(scope.$flashInterval).toBeUndefined();
-    //scope.flashScenario(board);
-    //expect(scope.$flashInterval).toBeDefined();
-    //console.log(scope.$parent.board);
-    //$interval.flush( scope.$parent.specs.flashSimulationSpeed * 9 );
-    //console.log(scope.$parent.board);
+
+    scope.flashScenario(board);
+
+    expect(scope.$flashInterval).toBeDefined();
+    $interval.flush( scope.$parent.specs.flashSimulationSpeed * 10 );
+    expect(scope.$parent.winner).toBeDefined();
+    expect(scope.$flashInterval).toBeUndefined();
+  });
+
+  it('should simulate at least the first several games with some level of correctness, but will not yet', function () {
+    var testThisMany = 3;
+    scope.reset();
+    expect(scope.$completeSimulationInterval).toBeUndefined();
+    expect(scope.$flashInterval).toBeUndefined();
+
+    scope.simulateEveryGame();
+    expect(scope.$completeSimulationInterval).toBeDefined();
+    $interval.flush( scope.$parent.specs.flashInterval * testThisMany );
+  });
+
+  it('should stop the complete simulation', function () {
+    expect(scope.$completeSimulationInterval).toBeUndefined();
+    scope.simulateEveryGame();
+    expect(scope.$completeSimulationInterval).toBeDefined();
+    scope.stopCompleteSimulation();
+    expect(scope.$completeSimulationInterval).toBeUndefined();
+  });
+
+  it('should tag/untag the current and future games with a private boolean to prevent/allow access from another window', function () {
+    expect(scope.$parent.privatePlay).toBe(false);
+
+    scope.togglePrivatePlay();
+    expect(scope.$parent.privatePlay).toBe(true);
+    expect(scope.$parent.game.is_private).toBe(true);
+    expect(scope.$parent.$liveReloadInterval).toBeUndefined();
+
+    scope.togglePrivatePlay();
+    expect(scope.$parent.privatePlay).toBe(false);
+    expect(scope.$parent.game.is_private).toBe(false);
+    expect(scope.$parent.$liveReloadInterval).toBeDefined();
   });
 });

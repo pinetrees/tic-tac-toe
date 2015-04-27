@@ -92,16 +92,17 @@ angular.module('TicTacToe')
 
     $scope.flashScenario = function(board) {
         $scope.$flashInterval = $interval(function() {
-            var pair = board.shift();
             if( $scope.$parent.winner || board.length === 0 ) {
                 $scope.$parent.stopInterval($scope.$flashInterval);
                 delete $scope.$flashInterval;
             } else {
+                var pair = board.shift();
                 $scope.$parent.move(pair[0], pair[1], true);
             }
         }, $scope.$parent.specs.flashSimulationSpeed);
     };
 
+    //Very unfortunately, this method is not yet functioning. It initializes the $flashInterval one time, but never executes it, thus preventing all further simulations from executing.
     $scope.simulateEveryGame = function() {
         $scope.intervals.playAll = true;
         $rootScope.message = 'Just a moment...';
@@ -111,20 +112,20 @@ angular.module('TicTacToe')
             if( k >= games.length ) {
                 $scope.stopCompleteSimulation()
             } else if ( typeof($scope.$flashInterval) !== 'undefined' ) {
-                //Do nothing
+                //Do nothing, since the last simulation has not yet finished.
             } else {
                 $scope.reset();
                 $rootScope.message = 'There are ' + (games.length - k).toString() + ' games left!';
                 var board = $scope.mapSequence(games[k]);
-                console.log(board);
                 $scope.flashScenario(board);
                 k++;
             }
-        }, $scope.specs.flashInterval);
+        }, $scope.$parent.specs.flashInterval);
     };
 
     $scope.stopCompleteSimulation = function() {
         $scope.$parent.stopInterval($scope.$completeSimulationInterval);
+        delete $scope.$completeSimulationInterval;
         delete $scope.intervals.playAll;
         $scope.message = '';
         $scope.$parent.newGame();
