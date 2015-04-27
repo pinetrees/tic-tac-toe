@@ -17,7 +17,10 @@ python manage.py runserver [$ip:$port]
 ##Client
 1. cd client && npm install - its a little big due to karma / phantomjs
 2. bower install
+3. grunt test - you may need to install PhantomJS through your package manager (i.e. apt-get install phantomjs)
 3. grunt serve
+
+* Port and hostname modifications can be made in Gruntfile.js
 
 ##Features
 * Player colors
