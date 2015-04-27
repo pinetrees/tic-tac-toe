@@ -14,9 +14,13 @@
 
         <ul class="nav navbar-nav">
             <li><a class="href" ng-click="reset()">Reset</a></li>
+            <li><a class="href" ng-click="toggleServer()">
+                <span ng-if="usingServer">Disable server</span>
+                <span ng-if="!usingServer">Enable server</span>
+            </a></li>
             <li><a class="href" ng-click="simulatePlay()">Randomize play</a></li>
             <li><a class="href" ng-click="clearGameHistory()">Clear the game history</a></li>
-            <li><a class="href" ng-click="togglePrivatePlay()">
+            <li><a class="href" ng-if="usingServer" ng-click="togglePrivatePlay()">
                 <span ng-if="!privatePlay">Make games private</span>
                 <span ng-if="privatePlay">Make games public</span>
             </a></li>

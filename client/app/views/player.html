@@ -1,21 +1,24 @@
 <div class="header">
     {{player.name}}
+    <div class="icon"><ui-iconpicker ng-click="update(player)" ng-model="player.icon"></ui-iconpicker></div>
 </div>
-<div class="form-inline">
-    <div class="form-group">
-        <label>Name</label>
-        <input ng-model="player.name" class="form-control" ng-blur="update(player)">
+<div class="form-horizontal">
+    <div class="form-inline">
+        <div class="form-group">
+            <label>Name</label>
+            <input ng-model="player.name" class="form-control" ng-focus="player.isUpdating = true" ng-blur="update(player)">
+        </div>
     </div>
-</div>
-<div class="form-inline">
-    <div class="form-group">
-        <label>Color</label>
-        <input colorpicker ng-model="player.color" class="form-control" ng-blur="update(player)">
+    <div class="form-inline">
+        <div class="form-group">
+            <label>Color</label>
+            <input colorpicker ng-model="player.color" class="form-control" ng-focus="player.isUpdating = true" ng-blur="update(player)">
+        </div>
     </div>
-</div>
-<div class="form-inline">
-    <div class="form-group">
-        <label>Score</label>
-        <input ng-model="player.score" class="form-control" disabled>
+    <div class="form-inline">
+        <div class="form-group">
+            <label>Score</label>
+            <input ng-model="player.score" class="form-control" disabled>
+        </div>
     </div>
 </div>

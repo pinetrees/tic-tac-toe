@@ -4,7 +4,7 @@
 <board>
 <div class="board col-md-4" style="color: {{currentPlayer.color}}">
     <div class="header">{{currentPlayer.name}}</div>
-    <div class="player"><i class="fa fa-user"></i></div>
+    <div class="player"><i class="glyphicon {{currentPlayer.icon}}"></i></div>
     <div class="header info">{{ message }}</div>
     <div ng-repeat="row in board" ng-init="$rowIndex = $index" class="row">
         <div ng-repeat="cell in row track by $index" ng-init="$colIndex = $index" class="cell" ng-click="move($rowIndex, $colIndex)" ng-class="{href: gameActive, hover: gameActive && hover && (cell == 0)}" ng-mouseenter="hover = true" ng-mouseleave="hover = false">

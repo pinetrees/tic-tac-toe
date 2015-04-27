@@ -36,6 +36,7 @@ angular.module('TicTacToe')
     $scope.queue = [];
     $scope.moveInProgress = false;
     $scope.privatePlay = false;
+    $scope.usingServer = true;
 
     //I've supported speed tic-tac-toe for those with fast fingers. 
     $scope.keyCodes = [49, 50, 51, 52, 53, 54, 55, 56, 57];
@@ -51,21 +52,22 @@ angular.module('TicTacToe')
         57: [0, 2],
     };
 
-    $scope.players = [
-        {'name': 'Player 1', 'index': 1, 'color': 'red', 'score': 0},
-        {'name': 'Player 2', 'index': 2, 'color': 'blue', 'score': 0}
-    ];
-
     // PLAYER METHODS
     // 1. setPlayers
     // 2. changePlayer
     // 3. declareWinner
 
     $scope.setPlayers = function() {
-        playerService.query().then(function(players) {
-            _.extend($scope.players[0], players[0]);
-            _.extend($scope.players[1], players[1]);
-        });
+        $scope.players = [
+            {'name': 'Player 1', 'index': 1, 'color': 'red', 'score': 0},
+            {'name': 'Player 2', 'index': 2, 'color': 'blue', 'score': 0}
+        ];
+        if ($scope.usingServer) {
+            playerService.query().then(function(players) {
+                _.extend($scope.players[0], players[0]);
+                _.extend($scope.players[1], players[1]);
+            });
+        }
     };
 
     $scope.changePlayer = function() {
@@ -127,10 +129,12 @@ angular.module('TicTacToe')
 
     //A wrapper to generate a new game from the server.
     $scope.createGame = function() {
-        gameService.create().then(function(game) {
-            $scope.game = game;
-            $scope.setBoard();
-        });
+        if ($scope.usingServer) {
+            gameService.create().then(function(game) {
+                $scope.game = game;
+                $scope.setBoard();
+            });
+        }
     };
 
     // Take both the client and server side actions to prepare for a new game.
@@ -143,15 +147,19 @@ angular.module('TicTacToe')
 
     //Attempt to get the most recent game off of the server. If no incomplete game exists, start a new one.
     $scope.fetchGame = function() {
-        gameService.current().then(function(game) {
-            if (game) {
-                $scope.game = game;
-                $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
-                $scope.setBoard();
-            } else {
-                $scope.newGame();
-            }
-        });
+        if ($scope.usingServer) {
+            gameService.current().then(function(game) {
+                if (game) {
+                    $scope.game = game;
+                    $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
+                    $scope.setBoard();
+                } else {
+                    $scope.newGame();
+                }
+            });
+        } else {
+            $scope.newGame();
+        }
     }
 
     // MOVE METHODS
@@ -160,16 +168,18 @@ angular.module('TicTacToe')
     // 3. move
     // This method handles persisting game moves to the server. It is defined separately from makeMove so that it can be called recursively, if we have a queue
     $scope.persistMove = function(move) {
-        gameService.move($scope.game, move).then(function(game) {
-            $scope.game = game;
-            if($scope.queue.length > 0) {
-                move = $scope.queue.pop();
-                $scope.persistMove(move);
-            } else {
-                $scope.moveInProgress = false;
-                $scope.message = '';
-            }
-        });
+        if ($scope.usingServer) {
+            gameService.move($scope.game, move).then(function(game) {
+                $scope.game = game;
+                if($scope.queue.length > 0) {
+                    move = $scope.queue.pop();
+                    $scope.persistMove(move);
+                } else {
+                    $scope.moveInProgress = false;
+                    $scope.message = '';
+                }
+            });
+        }
     };
 
     // This method starts the action of persisting a move to the server. It is coupled with persistMove, to handle a queue, should we have fast action.
@@ -420,20 +430,34 @@ angular.module('TicTacToe')
                 return true;
             }
             //With a little bit of work, this can be refactored into fetchGame
-            gameService.current().then(function(game) {
-                if (game) {
-                    //If the game hasn't changed, we'll leave things alone.
-                    if (game.game_index === $scope.game.game_index) { 
-                        return true;
+            if ($scope.usingServer) {
+                gameService.current().then(function(game) {
+                    if (game) {
+                        //If the game hasn't changed, we'll leave things alone.
+                        if (game.game_index === $scope.game.game_index) { 
+                            return true;
+                        } else {
+                            $scope.game = game;
+                            $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
+                            $scope.setBoard();
+                        }
                     } else {
-                        $scope.game = game;
-                        $scope.currentPlayer = _.findWhere($scope.players, {index: $scope.game.state});
-                        $scope.setBoard();
+                        //We'll do nothing and let the game continue in peace.
                     }
-                } else {
-                    //We'll do nothing and let the game continue in peace.
+                });
+                
+                //A crazy thing we are doing here - multiple gates against this update. Without it, we have some ugly scope application issues. The downside is the small window for error, when a player isn't updating, a fetch is made, a player updates and stops, and then the fetch returns! It will glitch, but it will sort itself out. We need a test to prove this, but for now, it works to provide a nice feature at a low expense.
+                if( !$scope.players[0].isUpdating && !$scope.players[1].isUpdating ) {
+                    playerService.query().then(function(players) {
+                        if( !$scope.players[0].isUpdating ) {
+                            _.extend($scope.players[0], players[0]);
+                        }
+                        if( !$scope.players[1].isUpdating ) {
+                            _.extend($scope.players[1], players[1]);
+                        }
+                    });
                 }
-            });
+            }
         }, $scope.specs.liveReloadSpeed);
     };
 

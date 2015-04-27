@@ -12,6 +12,8 @@ angular
   .module('TicTacToe', [
     'angular-underscore',
     'colorpicker.module',
+    'ui.bootstrap',
+    'ui-iconpicker',
     'ngResource',
     'ngRoute',
   ])

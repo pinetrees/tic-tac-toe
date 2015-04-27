@@ -16,11 +16,15 @@ angular.module('TicTacToe')
         delete $scope.$parent.winner;
         $scope.$parent.gameActive = true;
 
-        gameService.reset($scope.$parent.game).then(function(data) {
-            $scope.$parent.game = data;
-            $scope.$parent.currentPlayer = _.findWhere($scope.$parent.players, {index: $scope.$parent.game.state});
-            $scope.$parent.setBoard();
-        });
+        if ($scope.$parent.usingServer) {
+            gameService.reset($scope.$parent.game).then(function(data) {
+                $scope.$parent.game = data;
+                $scope.$parent.currentPlayer = _.findWhere($scope.$parent.players, {index: $scope.$parent.game.state});
+                $scope.$parent.setBoard();
+            });
+        } else {
+            $scope.$parent.newGame();
+        }
     };
 
     $scope.simulateMove = function() {
@@ -37,26 +41,40 @@ angular.module('TicTacToe')
         return false;
     };
 
+    $scope.setSimulationInterval = function() {
+        $scope.$simulationInterval = $interval(function() {
+            if( $scope.$parent.winner ) {
+                $scope.$parent.stopInterval($scope.$simulationInterval);
+            } else {
+                $scope.simulateMove();
+            }
+        }, $scope.$parent.specs.simulationSpeed);
+    };
+
     $scope.simulatePlay = function() {
         $scope.reset();
-        gameService.create({}).then(function(game) {
-            $scope.$parent.game = game;
+        if ($scope.$parent.usingServer) {
+            gameService.create({}).then(function(game) {
+                $scope.$parent.game = game;
+                $scope.$parent.setBoard();
+                $scope.setSimulationInterval();
+            });
+        } else {
             $scope.$parent.setBoard();
-            $scope.$simulationInterval = $interval(function() {
-                if( $scope.$parent.winner ) {
-                    $scope.$parent.stopInterval($scope.$simulationInterval);
-                } else {
-                    $scope.simulateMove();
-                }
-            }, $scope.$parent.specs.simulationSpeed);
-        });
+            $scope.setSimulationInterval();
+        }
     };
 
     $scope.clearGameHistory = function() {
-        gameService.deleteAll().then(function() {
+        if ($scope.$parent.usingServer) {
+            gameService.deleteAll().then(function() {
+                $scope.$parent.setPlayers();
+                $scope.$parent.newGame();
+            });
+        } else {
+            $scope.reset();
             $scope.$parent.setPlayers();
-            $scope.$parent.newGame();
-        });
+        }
     };
 
     $scope.permute = function(input) {
@@ -140,10 +158,25 @@ angular.module('TicTacToe')
         } else {
             $scope.$parent.setLiveReload();
         }
-        gameService.save($scope.$parent.game).then(function(data) {
-            console.log(data);
-            $scope.$parent.game = data;
-        });
+
+        //This is to be safe. We will be using the server if the private play option is available.
+        if ($scope.$parent.usingServer) {
+            gameService.save($scope.$parent.game).then(function(data) {
+                console.log(data);
+                $scope.$parent.game = data;
+            });
+        }
+    };
+
+    $scope.toggleServer = function() {
+        $scope.$parent.usingServer = !$scope.$parent.usingServer;
+        if( $scope.$parent.usingServer ) {
+            $scope.setLiveReload();
+        } else {
+            $scope.$parent.stopInterval($scope.$parent.$liveReloadInterval);
+            delete $scope.$parent.$liveReloadInterval;
+        }
+
     };
 
 
