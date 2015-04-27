@@ -1,4 +1,8 @@
 *.swp
 *migrations/*
-app/bower_components
+client/bower_components
+client/node_modules
 *.pyc
+*.tmp
+*.sass-cache
+server/env
