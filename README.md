@@ -1,7 +1,7 @@
 # tic-tac-toe
 
 ##Server
-#To build, chmod +x build.sh && ./build.sh, or just:
+#To build, cd server && chmod +x build.sh && ./build.sh, or just:
 1. cd server && virtualenv env
 2. source env/bin/activate
 3. pip install -r requirements.txt
