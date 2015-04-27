@@ -29,6 +29,8 @@ module.exports = function(config) {
       'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
+      'bower_components/angular-bootstrap/ui-bootstrap.js',
+      'bower_components/ui-iconpicker/dist/scripts/ui-iconpicker.js',
       'app/scripts/**/*.js',
       'test/mock/**/*.js',
       'test/spec/**/*.js'

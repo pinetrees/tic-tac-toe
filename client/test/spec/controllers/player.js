@@ -10,6 +10,7 @@ describe('Controller: PlayerCtrl', function () {
   // Initialize the controller and a mock scope
   beforeEach(inject(function ($controller, $rootScope, $q) {
     scope = $rootScope.$new();
+    scope.$parent.usingServer = true;
 
     var player = {'name': 'Player 1', 'index': 1, 'color': 'yellow', 'score': 0};
 

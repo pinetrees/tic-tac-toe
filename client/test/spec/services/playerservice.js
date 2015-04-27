@@ -54,7 +54,7 @@ describe('Service: playerService', function () {
     httpBackend.expectPUT(_API_ENDPOINT_ + 'players/' + player.id + '/').respond(player);
 
     playerService.save(player).then(function(result) {
-        data = result.data
+        data = result
     });
 
     httpBackend.flush()
