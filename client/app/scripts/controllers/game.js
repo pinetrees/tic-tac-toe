@@ -385,6 +385,12 @@ angular.module('TicTacToe')
         if( $scope.keyCodes.indexOf(e.keyCode) === -1 ) {
             return false;
         }
+
+        //We don't want to move if a player is just changing their attributes.
+        if( $scope.players[0].isUpdating || $scope.players[1].isUpdating ) {
+            return false;
+        }
+
         var position = $scope.keyMappings[e.keyCode];
 
         return $scope.move(position[0], position[1]);
