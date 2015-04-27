@@ -1,0 +1,4 @@
+*.swp
+*migrations/*
+app/bower_components
+*.pyc
