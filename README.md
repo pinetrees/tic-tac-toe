@@ -1,7 +1,7 @@
 # tic-tac-toe
 
 ##Server
-#chmod +x build.sh && ./build.sh, or just:
+#To build, chmod +x build.sh && ./build.sh, or just:
 1. cd server && virtualenv env
 2. source env/bin/activate
 3. pip install -r requirements.txt
@@ -10,6 +10,9 @@
 6. python manage.py migrate
 7. python manage.py loaddata fixtures/players.Player.json
 7. python manage.py runserver
+
+#To run, chmod +x run.sh && ./run.sh [$ip:$port], or just:
+python manage.py runserver [$ip:$port]
 
 ##Client
 1. cd client && npm install - its a little big due to karma / phantomjs
