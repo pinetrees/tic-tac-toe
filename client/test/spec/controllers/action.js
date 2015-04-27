@@ -134,6 +134,14 @@ describe('Controller: ActionCtrl', function () {
     }
   });
 
+  it('should reset both players\' score to 0', function () {
+    scope.$parent.players[0].score = 1;
+    scope.$parent.players[1].score = 1;
+    scope.resetPlayerScores();
+    expect(scope.$parent.players[0].score).toBe(0);
+    expect(scope.$parent.players[1].score).toBe(0);
+  });
+
   it('should delete all games and set up a new one', function () {
     gameServiceMock.deleteAll.calls.reset()
     playerServiceMock.query.calls.reset()
@@ -141,7 +149,9 @@ describe('Controller: ActionCtrl', function () {
     scope.clearGameHistory();
     scope.$apply();
     expect(gameServiceMock.deleteAll).toHaveBeenCalled();
-    expect(playerServiceMock.query).toHaveBeenCalled();
+    //expect(playerServiceMock.query).toHaveBeenCalled();
+    expect(scope.$parent.players[0].score).toBe(0);
+    expect(scope.$parent.players[1].score).toBe(0);
     expect(gameServiceMock.create).toHaveBeenCalled();
   });
 

@@ -13,7 +13,8 @@ angular.module('TicTacToe')
     $scope.update = function(player) {
         if ($scope.$parent.usingServer) {
             playerService.save(player).then(function(data) {
-                $scope.player = data;
+                //I wish I could do this. Unfortunately, it will destroy the two way bind I need.
+                //$scope.player = data;
             });
         }
         //We have to do this early, or else we'll run into an issue when switching between two of the player's inputs. Unfortunately, our request may be behind an update. This can be fixed by making the call to each player separately, and only making the call if isUpdating is false. The expense is an additional hit on the server for every interval.
@@ -28,7 +29,7 @@ angular.module('TicTacToe')
             $scope.player.isUpdating = true;
             if ($scope.$parent.usingServer) {
                 playerService.save($scope.player).then(function(data) {
-                    $scope.player.isUpdating = true;
+                    $scope.player.isUpdating = false;
                 });
             }
         }

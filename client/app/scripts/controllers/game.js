@@ -63,9 +63,11 @@ angular.module('TicTacToe')
             {'name': 'Player 2', 'index': 2, 'color': 'blue', 'score': 0}
         ];
         if ($scope.usingServer) {
+            $scope.playersAreUpdating = true;
             playerService.query().then(function(players) {
                 _.extend($scope.players[0], players[0]);
                 _.extend($scope.players[1], players[1]);
+                $scope.playersAreUpdating = false;
             });
         }
     };
@@ -447,7 +449,7 @@ angular.module('TicTacToe')
                 });
                 
                 //A crazy thing we are doing here - multiple gates against this update. Without it, we have some ugly scope application issues. The downside is the small window for error, when a player isn't updating, a fetch is made, a player updates and stops, and then the fetch returns! It will glitch, but it will sort itself out. We need a test to prove this, but for now, it works to provide a nice feature at a low expense.
-                if( !$scope.players[0].isUpdating && !$scope.players[1].isUpdating ) {
+                if( !$scope.players[0].isUpdating && !$scope.players[1].isUpdating && !$scope.playersAreUpdating ) {
                     playerService.query().then(function(players) {
                         if( !$scope.players[0].isUpdating ) {
                             _.extend($scope.players[0], players[0]);

@@ -65,15 +65,24 @@ angular.module('TicTacToe')
         }
     };
 
+    $scope.resetPlayerScores = function() {
+        $scope.$parent.players[0].score = 0;
+        $scope.$parent.players[1].score = 0;
+    };
+
     $scope.clearGameHistory = function() {
         if ($scope.$parent.usingServer) {
             gameService.deleteAll().then(function() {
-                $scope.$parent.setPlayers();
+                //This destroys my binding.
+                //$scope.$parent.setPlayers();
+                //So instead
+                $scope.resetPlayerScores();
                 $scope.$parent.newGame();
             });
         } else {
             $scope.reset();
-            $scope.$parent.setPlayers();
+            //$scope.$parent.setPlayers();
+            $scope.resetPlayerScores();
         }
     };
 
