@@ -214,7 +214,7 @@ angular.module('TicTacToe')
             $scope.checkMove(row, col);
 
             //Persist this to the server
-            if( persistless !== true  ) {
+            if( persistless !== true && $scope.usingServer  ) {
                 $scope.makeMove(row, col);
             }
 
