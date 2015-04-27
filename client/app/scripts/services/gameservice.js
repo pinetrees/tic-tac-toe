@@ -8,7 +8,7 @@
  * Service in the TicTacToe.
  */
 angular.module('TicTacToe')
-  .factory('gameService', ['$http', '$q', 'API_ENDPOINT', function($http, $q, API_ENDPOINT){
+  .factory('gameService', ['$http', '$q', 'API_ENDPOINT', '$rootScope', function($http, $q, API_ENDPOINT, $rootScope){
     // AngularJS will instantiate a singleton by calling "new" on this function
     var factory = {
         current: function() {
@@ -17,6 +17,7 @@ angular.module('TicTacToe')
                 deferred.resolve(data);
             })
             .error(function(data, status){
+                $rootScope.serverErrors += 1;
             });
             return deferred.promise;
         },

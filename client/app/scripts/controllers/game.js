@@ -37,6 +37,8 @@ angular.module('TicTacToe')
     $scope.moveInProgress = false;
     $scope.privatePlay = false;
     $scope.usingServer = true;
+    $rootScope.serverErrors = 0;
+    $rootScope.maxErrorsBeforeShutdown = 5;
 
     //I've supported speed tic-tac-toe for those with fast fingers. 
     $scope.keyCodes = [49, 50, 51, 52, 53, 54, 55, 56, 57];
@@ -469,6 +471,12 @@ angular.module('TicTacToe')
         }, $scope.specs.liveReloadSpeed);
     };
 
+    //We'll disable the server after a number of unsuccessful requests
+    $scope.$watch('serverErrors', function() {
+        if ($scope.serverErrors > $scope.maxErrorsBeforeShutdown) {
+            $scope.usingServer = false;
+        }
+    });
 
     //And off to the races...
     $scope.setPlayers();
