@@ -25,8 +25,11 @@ angular.module('TicTacToe')
         if (newValue !== oldValue + 1) {
             return false;
         } else {
+            $scope.player.isUpdating = true;
             if ($scope.$parent.usingServer) {
-                playerService.save($scope.player);
+                playerService.save($scope.player).then(function(data) {
+                    $scope.player.isUpdating = true;
+                });
             }
         }
     });
